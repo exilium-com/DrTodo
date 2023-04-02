@@ -5,7 +5,10 @@ from dataclasses import dataclass
 from typing import Any, Optional
 import typer
 from pydantic import BaseSettings, Field
-import tomli
+try:
+    import tomllib as toml
+except ImportError:
+    import tomli as toml
 from git import Repo
 
 
@@ -62,9 +65,9 @@ def load_config(config_folder: Path, config_filename: Path) -> dict[str, Any]:
         config_file_user = config_folder / f"{config_filename.stem}.{constants.username}.{config_filename.suffix}"
 
         if config_file.exists():
-            result |= tomli.loads(config_file.read_text())
+            result |= toml.loads(config_file.read_text())
         if config_file_user.exists():
-            result |= tomli.loads(config_file_user.read_text())
+            result |= toml.loads(config_file_user.read_text())
     return result
 
 

@@ -109,6 +109,7 @@ def add(
 # done [--id <id> | --index <index> | --all | --match <regular expression>] (exactly one option must be provided)
 @app.command()
 def done(
+    spec: str = typer.Argument(None, help="ID, index or regular expression to match item text"),
     id: str = typer.Option(None, "--id", "-i", help="ID of the item to mark as done"),
     index: int = typer.Option(None, "--index", "-n", help="Index of the item to mark as done"),
     match: str = typer.Option(None, "--match", "-m", help="Regular expression to match item text"),
@@ -117,10 +118,25 @@ def done(
     """
     Mark one or more todo items as done
     """
-    # ensure exactly one of id, index, match or all is not None
-    if sum([id is not None, index is not None, match is not None, all]) != 1:
+    # ensure exactly one of spec, id, index, match or all is not None
+    if sum([spec is not None, id is not None, index is not None, match is not None, all]) != 1:
         # console.print("[error]ERROR:[/error] Exactly one of --id, --index, --match or --all must be provided")
         raise typer.BadParameter("Exactly one of --id, --index, --match or --all must be provided")
+
+    if spec is not None:
+        # heuristics:
+        # if spec is a small integer, assume it's an index
+        # if spec is a a pure hex string assume it's an ID
+        # otherwise assume it's a regular expression
+        try:
+            index = int(spec)
+            if index >= 1000:
+                raise ValueError
+        except ValueError:
+            if re.match(r'^[0-9a-f]+$', spec):
+                id = spec
+            else:
+                match = spec
 
     def matching_items_iter(items, id, index, match, all):
         if all:
