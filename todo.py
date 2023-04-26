@@ -3,7 +3,7 @@ from pathlib import Path
 import settings
 import typer
 from rich import print
-from mdparser import parse_todo_list
+from mdparser import TodoListParser
 from git import Repo
 import rich.markdown
 import re
@@ -66,13 +66,15 @@ def list():
     List todo items in the list
     """
     if settings.globals.global_todofile and settings.globals.global_todofile.exists():
-        print(f"{settings.globals.global_todofile}")
-        items = parse_todo_list(settings.globals.global_todofile)
-        print_todo_items(items)
+        console.print(f"[header]{settings.globals.global_todofile}[text]")
+        todo = TodoListParser()
+        todo.parse(settings.globals.global_todofile)
+        print_todo_items(todo.items)
     if settings.globals.local_todofile and settings.globals.local_todofile.exists():
-        print(f"{settings.globals.local_todofile}")
-        items = parse_todo_list(settings.globals.local_todofile)
-        print_todo_items(items)
+        console.print(f"[header]{settings.globals.local_todofile}[text]")
+        todo = TodoListParser()
+        todo.parse(settings.globals.local_todofile)
+        print_todo_items(todo.items)
 
 
 @app.command()
@@ -106,17 +108,35 @@ def add(
     print_todo_item(todo_item)
 
 
-# done [--id <id> | --index <index> | --all | --match <regular expression>] (exactly one option must be provided)
-@app.command()
-def done(
-    spec: str = typer.Argument(None, help="ID, index or regular expression to match item text"),
-    id: str = typer.Option(None, "--id", "-i", help="ID of the item to mark as done"),
-    index: int = typer.Option(None, "--index", "-n", help="Index of the item to mark as done"),
-    match: str = typer.Option(None, "--match", "-m", help="Regular expression to match item text"),
-    all: bool = typer.Option(False, "--all", "-a", help="Mark all items as done"),
-):
+def save_todo_backups(pathname: Path, todo):
+    def make_backup_path(i: int) -> Path:
+        assert isinstance(i, int) and i > 0
+        # files are hidden and have a '.bak-1' extension for the most recent backup, '.bak-2' for the next most recent, etc.
+        return pathname.with_name(f".{pathname.name.removeprefix('.')}.bak-{i}")
+
+    # first write to a temp file with a '.tmp' extension
+    tmpfilepath = pathname.with_suffix(pathname.suffix + '.tmp')
+    todo.write(tmpfilepath)
+
+    # if file write worked, then we can perform the rename dance
+    n = settings.settings.keep_backups
+    if n > 0:
+        # we keep n backups named as '.bak-1' (for the most recent n-1 backup), '.bak-2', etc.)
+        # first delete the oldest backup
+        make_backup_path(n).unlink(missing_ok=True)
+        for i in range(n - 1, 0, -1):
+            bakfilepath = make_backup_path(i)
+            if bakfilepath.exists():
+                bakfilepath.rename(make_backup_path(i + 1))
+        # rename the original file to '.bak-1'
+        pathname.rename(make_backup_path(1))
+    # finally, rename the temp file to the original filename
+    tmpfilepath.rename(pathname)
+
+
+def _done_undone_marker(done: bool, spec, id, index, match, all):
     """
-    Mark one or more todo items as done
+    Mark one or more todo items as done or undone.
     """
     # ensure exactly one of spec, id, index, match or all is not None
     if sum([spec is not None, id is not None, index is not None, match is not None, all]) != 1:
@@ -156,19 +176,54 @@ def done(
                     yield item
 
     if settings.globals.global_todofile and settings.globals.global_todofile.exists():
-        print(f"{settings.globals.global_todofile}")
-        items = parse_todo_list(settings.globals.global_todofile)
-        for item in matching_items_iter(items, id, index, match, all):
-            item['checked'] = True
+        console.print(f"[header]{settings.globals.global_todofile}[text] changes:")
+        todo = TodoListParser()
+        todo.parse(settings.globals.global_todofile)
+        for item in matching_items_iter(todo.items, id, index, match, all):
+            item['checked'] = done
             print_todo_item(item)
-            # TODO: write back to file
+        # write back to file
+        save_todo_backups(settings.globals.global_todofile, todo)
+
     if settings.globals.local_todofile and settings.globals.local_todofile.exists():
-        print(f"{settings.globals.local_todofile}")
-        items = parse_todo_list(settings.globals.local_todofile)
-        for item in matching_items_iter(items, id, index, match, all):
-            item['checked'] = True
+        console.print(f"[header]{settings.globals.local_todofile}[text] changes:")
+        todo = TodoListParser()
+        todo.parse(settings.globals.local_todofile)
+        for item in matching_items_iter(todo.items, id, index, match, all):
+            item['checked'] = done
             print_todo_item(item)
-            # TODO: write back to file
+        # write back to file
+        save_todo_backups(settings.globals.local_todofile, todo)
+
+
+# done [--id <id> | --index <index> | --all | --match <regular expression> | <specification>] (exactly one option must be provided)
+@app.command()
+def done(
+    spec: str = typer.Argument(None, help="ID, index or regular expression to match item text"),
+    id: str = typer.Option(None, "--id", "-i", help="ID of the item to mark as done"),
+    index: int = typer.Option(None, "--index", "-n", help="Index of the item to mark as done"),
+    match: str = typer.Option(None, "--match", "-m", help="Regular expression to match item text"),
+    all: bool = typer.Option(False, "--all", "-a", help="Mark all items as done"),
+):
+    """
+    Mark one or more todo items as done
+    """
+    _done_undone_marker(True, spec, id, index, match, all)
+
+
+# undone [--id <id> | --index <index> | --all | --match <regular expression> | <specification>] (exactly one option must be provided)
+@app.command()
+def undone(
+    spec: str = typer.Argument(None, help="ID, index or regular expression to match item text"),
+    id: str = typer.Option(None, "--id", "-i", help="ID of the item to mark as done"),
+    index: int = typer.Option(None, "--index", "-n", help="Index of the item to mark as done"),
+    match: str = typer.Option(None, "--match", "-m", help="Regular expression to match item text"),
+    all: bool = typer.Option(False, "--all", "-a", help="Mark all items as done"),
+):
+    """
+    Mark one or more todo items as NOT done (undone)
+    """
+    _done_undone_marker(False, spec, id, index, match, all)
 
 
 app.add_typer(help_command.app,

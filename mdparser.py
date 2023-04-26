@@ -2,8 +2,8 @@
 import mistune
 from pathlib import Path
 import re
-from rich import print
 from mistune.renderers.markdown import MarkdownRenderer
+from mistune.plugins.task_lists import task_lists
 
 
 class TokenTraverser:
@@ -30,12 +30,12 @@ class TaskListTraverser(TokenTraverser):
         found_items = []
 
         def match_task_item(tok):
-            if tok['type'] != 'list_item':
+            if tok['type'] != 'task_list_item':
                 return
 
-            if 'task_list_item' in tok:
+            if 'task_item' in tok:
                 # already processed in a previous traversal
-                found_items.append(tok['task_list_item'])
+                found_items.append(tok['task_item'])
                 return
 
             children = tok['children']
@@ -47,26 +47,40 @@ class TaskListTraverser(TokenTraverser):
 
                 self.traverse_tokens(children, 'text', append_text)
                 text = ''.join(text_list)
-                m = TaskListTraverser.TASK_LIST_ITEM.match(text)
-                if m:   # is it a task list item? if not, ignore it
-                    mark = m.group(1)
-                    item_text = text[m.end():].strip()
-                    id = self.calc_git_hash(item_text)
-                    task_list_item = {'checked': mark != '[ ]', 'text': item_text, 'id': id, 'index': len(found_items), 'token': tok}
-                    tok['task_list_item'] = task_list_item
-                    found_items.append(tok['task_list_item'])
+                id = self.calc_git_hash(text)
+                task_item = {'checked': tok['attrs']['checked'], 'text': text, 'id': id, 'index': len(found_items), 'token': tok}
+                tok['task_item'] = task_item
+                found_items.append(tok['task_item'])
 
-        self.traverse_tokens(tokens, 'list_item', match_task_item)
+        self.traverse_tokens(tokens, 'task_list_item', match_task_item)
         return found_items
 
 
-def parse_todo_list(pathname: Path):
-    markdownparser = mistune.create_markdown(renderer=MarkdownRenderer(), plugins=[])
+class TodoListParser:
 
-    with open(pathname) as f:
-        text = f.read()
-        result, state = markdownparser.parse(text)
-        # traverse the tokens
-        items = TaskListTraverser().find_task_lists(state.tokens)
+    def __init__(self):
+        self.markdownparser = mistune.create_markdown(renderer=MarkdownRenderer(), plugins=[task_lists])
+        self.items = []
+        self.state = None
 
-    return items
+    def parse(self, pathname: Path) -> list:
+        with open(pathname) as f:
+            text = f.read()
+            result, state = self.markdownparser.parse(text)
+            # traverse the tokens
+            self.items = TaskListTraverser().find_task_lists(state.tokens)
+            self.state = state
+        return self.items
+
+    def _update_md_from_items(self):
+        """Update the markdown text from the updated state in the items. Must be called before write()"""
+        for item in self.items:
+            token = item['token']
+            token['attrs']['checked'] = item['checked']
+            token['children'][0]['children'][0]['raw'] = item['text']
+
+    def write(self, pathname: Path):
+        self._update_md_from_items()
+        mdtext = self.markdownparser.render_state(self.state)
+        with open(pathname, 'w') as f:
+            f.write(mdtext)

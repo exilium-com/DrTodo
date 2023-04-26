@@ -30,6 +30,7 @@ constants: Constants = Constants()
 class Settings(BaseSettings):
     mdfile: str = Field("TODO.md", env=constants.env_prefix + "MDFILE")
     verbose: bool = False
+    keep_backups: int = 3   # number of backups to keep
 
     class Config:
         env_prefix = constants.env_prefix
@@ -72,8 +73,8 @@ def load_config(config_folder: Path, config_filename: Path) -> dict[str, Any]:
 
 
 def make_pretty_path(path: Path) -> str:
-
     return '~' / path.relative_to(Path.home())
+
 
 def initialize():
     # TODO: this needs to be different perhaps. Some command line options need to be read first because they decide where
@@ -88,6 +89,7 @@ def initialize():
     #   ~/.drtodo/.git                git repo for todo list (can be shared)
     #   /somefolder/.git              root folder for nearest .git repo (TODO: support git submodules etc.?)
     #   /somefolder/.drtodo.toml      local config file for this git repo (configurable)
+    #   /somefolder/.drtodo.bcs.toml  local config file for this git repo (configurable)
     #   /somefolder/TODO.md           default location for todo list for this git repo (configurable)
     # environment variables:
     #  DRTODO_MDFILE                 default location for todo list
@@ -103,7 +105,8 @@ def initialize():
     global settings
     config_dict: dict[str, Any] = {}
 
-    config_dict |= load_config(constants.appdir, Path(".drtodo.toml"))
+    # load either config.toml or config.{username}.toml
+    config_dict |= load_config(constants.appdir, Path("config.toml"))
 
     # find root of git repo
     try:
