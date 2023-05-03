@@ -6,12 +6,12 @@ name = "pypi"
 [packages]
 typer = "*"
 rich = "*"
-mistune = ">=3.0.0rc4"
 pygithub = "*"
 "ruamel.yaml" = "*"
 pydantic = "*"
 tomli = {version = "*", markers = "python_version < '3.11'"}
 gitpython = "*"
+mistune = {git = "https://github.com/exilium-com/mistune"}
 
 [dev-packages]
 black = "*"
@@ -22,4 +22,4 @@ pytest = "*"
 python_version = "3.11"
 
 [pipenv]
-allow_prereleases = true
+allow_prereleases = false
