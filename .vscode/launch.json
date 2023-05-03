@@ -10,7 +10,9 @@
             "request": "launch",
             "module": "todo",
             "args": [
-                "done",
+                "add",
+                "implement add command",
+                "--priority",
                 "1"
             ],
             "justMyCode": false

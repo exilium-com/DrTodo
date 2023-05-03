@@ -3,7 +3,7 @@ from pathlib import Path
 import settings
 import typer
 from rich import print
-from mdparser import TodoListParser
+from mdparser import TodoListParser, TaskListTraverser
 from git import Repo
 import rich.markdown
 import re
@@ -29,7 +29,7 @@ def version_string() -> str:
 def ensure_appdir(may_create: bool = False) -> None:
     if not settings.constants.appdir.exists():
         if not may_create:
-            print(f"DrTodo folder {settings.constants.appdir} does not exist. Use todo init to create it.")
+            print(f"DrTodo folder {settings.constants.appdir} does not exist. Use [bold]todo init[/bold] to create it.")
         else:
             settings.constants.appdir.mkdir(parents=False, exist_ok=False)
             assert settings.globals.global_todofile and not settings.globals.global_todofile.exists()
@@ -89,6 +89,17 @@ def debug():
     print(d)
 
 
+def _add_item(todo_item: dict, todofile_path: Path):
+    if todofile_path and todofile_path.exists():
+        todo = TodoListParser()
+        todo.parse(todofile_path)
+        todo.items.append(todo_item)
+        # TODO: need to append in the MD file in the right place
+        # save_todo_backups(todofile_path, todo)
+    else:
+        raise typer.Exit(f"Cannot add item to {todofile_path} because it does not exist")
+
+
 # add [--priority <priority>] [--due <due>] [--owner <owner>] [--done] <item description>
 @app.command()
 def add(
@@ -96,7 +107,8 @@ def add(
     priority: int = typer.Option(None, "--priority", "-p"),
     due: str = typer.Option(None, "--due", "-d", help="Due date in any format"),
     owner: str = typer.Option(None, "--owner", "-o", help="Owner userid or name"),
-    done: bool = typer.Option(False, "--done", "-D", help="Mark item as done"),
+    done: bool = typer.Option(False, "--done", "-D", help="Add item marked as done"),
+    global_todo: bool = typer.Option(False, "--global", "-G", help="Add item to global todo list, even if current folder is under a git repo"),
 ):
     """
     Add a new todo item to the list
@@ -105,8 +117,12 @@ def add(
     ownerstr = f" @{owner}" if owner else ""
     prioritystr = f" P{priority}" if priority else ""
     itemstr = f"{prioritystr}{ownerstr}{duestr} {description}"
-    todo_item = {'checked': done, 'text': itemstr}
+    todo_item = TaskListTraverser.create_item(itemstr, index=0, checked=done)
     print_todo_item(todo_item)
+    if not global_todo and settings.globals.local_todofile and settings.globals.local_todofile.exists():
+        _add_item(todo_item, settings.globals.local_todofile)
+    else:
+        _add_item(todo_item, settings.globals.global_todofile)
 
 
 def save_todo_backups(pathname: Path, todo):

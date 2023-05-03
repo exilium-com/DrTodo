@@ -26,6 +26,12 @@ class TaskListTraverser(TokenTraverser):
         import hashlib
         return hashlib.sha1(text.encode('utf-8')).hexdigest()
 
+    @staticmethod
+    def create_item(text, *, index: int, checked: bool = False):
+        """creates a dict to represent a task list item from text and an index"""
+        id = TaskListTraverser.calc_git_hash(text)
+        return {'checked': checked, 'text': text, 'id': id, 'index': index}
+
     def find_task_lists(self, tokens) -> list:
         found_items = []
 
@@ -47,8 +53,8 @@ class TaskListTraverser(TokenTraverser):
 
                 self.traverse_tokens(children, 'text', append_text)
                 text = ''.join(text_list)
-                id = self.calc_git_hash(text)
-                task_item = {'checked': tok['attrs']['checked'], 'text': text, 'id': id, 'index': len(found_items), 'token': tok}
+                task_item = self.create_item(text, index=len(found_items), checked=tok['attrs']['checked'])
+                task_item['token'] = tok['attrs']['checked']
                 tok['task_item'] = task_item
                 found_items.append(tok['task_item'])
 
