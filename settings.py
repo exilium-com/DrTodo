@@ -12,7 +12,7 @@ except ImportError:
 from git import Repo
 
 
-__all__ = ["constants", "settings", "globals", "initialize"]
+__all__ = ["constants", "settings", "globals", "initialize", "make_pretty_path"]
 
 
 @dataclass(frozen=True)
@@ -72,15 +72,19 @@ def load_config(config_folder: Path, config_filename: Path) -> dict[str, Any]:
     return result
 
 
-def make_pretty_path(path: Path) -> str:
-    return '~' / path.relative_to(Path.home())
+def make_pretty_path(path: Path) -> Path:
+    """Make a path pretty by replacing the home folder with ~ if possible/needed."""
+    try:
+        return '~' / path.relative_to(Path.home())
+    except ValueError:
+        return path
 
 
 def initialize():
     # TODO: this needs to be different perhaps. Some command line options need to be read first because they decide where
     # to look for config files or not.
     # TODO: Also, settings in the gitroot folder may override settings in the appfolder and that may not be expected. Perhaps
-    # we need gitroo settings to only apply to to the gitroot TODO file and not to the appfolder TODO file?
+    # we need gitroot settings to only apply to to the gitroot TODO file and not to the appfolder TODO file?
 
     # Folder structure:
     #   ~/.drtodo/config.toml         global config
@@ -128,3 +132,19 @@ def initialize():
     globals.global_todofile_pretty = make_pretty_path(globals.global_todofile)
     globals.local_todofile = globals.gitroot / settings.mdfile if globals.gitroot else None
     globals.local_todofile_pretty = make_pretty_path(globals.local_todofile) if globals.local_todofile else None
+
+
+def get_default_config() -> str:
+    # This is NOT a general purpose TOML export. Works for this specific case only.
+    # We don't need to write TOML in most cases anyway, and Python 3.11 has read only TOML support.
+    x = ''
+    defaults = Settings().dict()
+    for k, v in defaults.items():
+        if isinstance(v, bool):
+            tomlv = 'true' if v else 'false'
+        elif isinstance(v, str):
+            tomlv = repr(v)
+        else:
+            tomlv = str(v)
+        x += f"{k} = {tomlv}\n"
+    return x

@@ -15,9 +15,10 @@ settings.initialize()  # HACK: need to initialize this before main() is called
 
 app = typer.Typer(no_args_is_help=True,
                   rich_markup_mode="markdown",
-                  help="**DrTodo, MD**: *a straightforward todo list manager for markdown files in git repos.*",
+                  help="**{settings.constants.appname}, MD**: *a straightforward todo list manager for markdown files in git repos.*",
                   epilog=f"DrTodo can manage items in a global todo list ({settings.globals.global_todofile_pretty})"
-                  f" and in a local todo list ({settings.globals.local_todofile_pretty or 'if the current folder is under a git repo'}).",
+                  f" and in a local todo list ({settings.globals.local_todofile_pretty or 'if the current folder is under a git repo'})."
+                  f" Settings are read from config files and env variables (see *todo man config*).",
                   rich_help_panel="Integration")
 
 
@@ -66,12 +67,12 @@ def list():
     List todo items in the list
     """
     if settings.globals.global_todofile and settings.globals.global_todofile.exists():
-        console.print(f"[header]{settings.globals.global_todofile}[text]")
+        console.print(f"[header]{settings.globals.global_todofile_pretty}[text]")
         todo = TodoListParser()
         todo.parse(settings.globals.global_todofile)
         print_todo_items(todo.items)
     if settings.globals.local_todofile and settings.globals.local_todofile.exists():
-        console.print(f"[header]{settings.globals.local_todofile}[text]")
+        console.print(f"[header]{settings.globals.local_todofile_pretty}[text]")
         todo = TodoListParser()
         todo.parse(settings.globals.local_todofile)
         print_todo_items(todo.items)
@@ -241,13 +242,18 @@ def _version_callback(value: bool) -> None:
 panel_GLOBAL = "Global Options"
 panel_FILESELECTION = "File Selection Options"
 
+
 # Typer callback handles global options like --mdfile and --verbose
 @app.callback()
 def main(
-    settings: Optional[Path] = typer.Option(settings.constants.appdir, "--settings", "-s", help="Settings file to use", rich_help_panel=panel_GLOBAL),
-    verbose: Optional[bool] = typer.Option(False, "--verbose", "-v", help="Verbose output", rich_help_panel=panel_GLOBAL),
-    mdfile: Optional[Path] = typer.Option(settings.settings.mdfile, help="Markdown file to use for todo list", rich_help_panel=panel_FILESELECTION),
-    version: Optional[bool] = typer.Option(False, "--version", "-V", help="Show version and exit", callback=_version_callback, is_eager=True, rich_help_panel=panel_GLOBAL),
+    settings: Optional[Path] = typer.Option(settings.constants.appdir, "--settings", "-s", help="Settings file to use",
+                                            rich_help_panel=panel_GLOBAL),
+    verbose: Optional[bool] = typer.Option(False, "--verbose", "-v", help="Verbose output",
+                                           rich_help_panel=panel_GLOBAL),
+    mdfile: Optional[Path] = typer.Option(settings.settings.mdfile, help="Markdown file to use for todo list",
+                                          rich_help_panel=panel_FILESELECTION),
+    version: Optional[bool] = typer.Option(False, "--version", "-V", help="Show version and exit",
+                                           callback=_version_callback, is_eager=True, rich_help_panel=panel_GLOBAL),
 ):
     # BUG: this is called even when the command is init, so it prints a warning about the appdir not existing
     ensure_appdir()
