@@ -4,7 +4,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, Optional
 import typer
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings, Field, BaseModel
 try:
     import tomllib as toml
 except ImportError:
@@ -27,10 +27,39 @@ class Constants:
 constants: Constants = Constants()
 
 
+class Style(BaseModel):
+    checked: str = '🔘'
+    unchecked: str = '⚫'
+    strike_done: bool = False
+    dim_done: bool = False
+
+
+styles = {
+    '': Style(checked='🔘', unchecked='⚫'),
+    'round': Style(checked='🔘', unchecked='⚫'),
+    'ascii': Style(checked='\[x]', unchecked='\[ ]'),
+    'bright': Style(checked='✅', unchecked='❌'),
+    'check': Style(checked='✓', unchecked='✗'),
+    'boxed': Style(checked='☑', unchecked='☐'),
+    'dark': Style(checked='✅', unchecked='🔳'),
+    'light': Style(checked='✅', unchecked='🔲'),
+}
+
+
 class Settings(BaseSettings):
     mdfile: str = Field("TODO.md", env=constants.env_prefix + "MDFILE")
     verbose: bool = False
     keep_backups: int = 3   # number of backups to keep
+    style: Style | str = ''
+    hide_hash: bool = False
+
+    # def __init__(self, **kwargs):
+    #     super().__init__(**kwargs)
+    #     self.update_values()
+
+    def update_values(self):
+        if isinstance(self.style, str):
+            self.style = styles[self.style]
 
     class Config:
         env_prefix = constants.env_prefix
@@ -126,6 +155,7 @@ def initialize():
         config_dict |= load_config(globals.gitroot, Path(".drtodo.toml"))
 
     settings = Settings(**config_dict)
+    settings.update_values()
     # command line options are processed later and will override anything
 
     globals.global_todofile = constants.appdir / settings.mdfile
@@ -140,11 +170,22 @@ def get_default_config() -> str:
     x = ''
     defaults = Settings().dict()
     for k, v in defaults.items():
-        if isinstance(v, bool):
-            tomlv = 'true' if v else 'false'
-        elif isinstance(v, str):
-            tomlv = repr(v)
+        if isinstance(v, dict):
+            x += f"[{k}]\n"
+            for k2, v2 in v.items():
+                if isinstance(v2, bool):
+                    tomlv = 'true' if v2 else 'false'
+                elif isinstance(v2, str):
+                    tomlv = repr(v2)
+                else:
+                    tomlv = str(v2)
+                x += f"{k2} = {tomlv}\n"
         else:
-            tomlv = str(v)
-        x += f"{k} = {tomlv}\n"
+            if isinstance(v, bool):
+                tomlv = 'true' if v else 'false'
+            elif isinstance(v, str):
+                tomlv = repr(v)
+            else:
+                tomlv = str(v)
+            x += f"{k} = {tomlv}\n"
     return x

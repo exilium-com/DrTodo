@@ -50,10 +50,26 @@ def print_todo_item(item: dict):
     # print a green large checkmark if checked is True or a blank empty box if checked is False
     # and properly render the markdown text with rich
     # trim trailing whitespace too
-    highlighted_md = rich.markdown.Markdown(item['text'].rstrip())
-#        console.print(f"{'✅' if item['checked'] else '🔳'} ", highlighted_md, end='')
-    console.print(f"[index]{item['index']:>3}: [hash]{item['id'][:7]} [text]{'🔘' if item['checked'] else '⚫'} ", highlighted_md, end='')
-    # TODO: options to render todo/done items differently, e.g. strikethrough, different bullets, dim colors etc.
+    checked_bullet = settings.settings.style.checked
+    unchecked_bullet = settings.settings.style.unchecked
+
+    strike = ""
+    dim = ""
+    if not item['checked']:
+        if settings.settings.style.dim_done:
+            dim = "[dim]"
+        if settings.settings.style.strike_done:
+            strike = "[strike]"
+
+    index_part = f"[index]{dim}{strike}{item['index']:>3}: "
+    hash_part = f"[hash]{dim}{strike}{item['id'][:7]} " if not settings.settings.hide_hash else ""
+    checkmark_part = f"[text]{dim}{strike}{checked_bullet if item['checked'] else unchecked_bullet} "
+    mdtext_part = rich.markdown.Markdown(item['text'].rstrip())
+    if dim:
+        mdtext_part.style = "dim"
+    if strike:
+        mdtext_part.style = "strike"
+    console.print(index_part + hash_part + checkmark_part, mdtext_part, end='')
 
 
 def print_todo_items(items: list):
