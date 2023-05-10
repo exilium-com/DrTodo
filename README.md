@@ -3,7 +3,44 @@ This is a sample list of TODOs locally tracked in this git repo.
 To Do:
 - [x] @WarpedPixel this is ~~to be~~ done
 - [ ] to do by 2/3/23 #32
-
+- [ ] @WarpedPixel Implement add item write. Look at item list token will point to token in the parsed
+  stream and then we add after it (or before). Ex:
+  ```python
+  tokens = [
+    {'type': 'paragraph', 'children': [{'type': 'text', 'raw': 'This is my cool project readme file.'}]},
+    {'type': 'blank_line'},
+    {'type': 'heading', 'attrs': {'level': 2}, 'style': 'axt', 'children': [{'type': 'text', 'raw': 'TODO'}]},
+    {
+        'type': 'list',
+        'children': [
+            {
+                'type': 'task_list_item',
+                'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': 'write a readme'}]}],
+                'attrs': {'checked': True}
+            },
+            {
+                'type': 'task_list_item',
+                'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': 'make it useful'}]}],
+                'attrs': {'checked': False}
+            }
+        ],
+        'tight': True,
+        'bullet': '-',
+        'attrs': {'depth': 0, 'ordered': False}
+    },
+    {'type': 'heading', 'attrs': {'level': 2}, 'style': 'axt', 'children': [{'type': 'text', 'raw': 'Bugs assigned to me'}]},
+    {
+        'type': 'list',
+        'children': [
+            {'type': 'task_list_item', 'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': 'bug 1'}]}], 'attrs': {'checked': False}},
+            {'type': 'task_list_item', 'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': 'bug 2'}]}], 'attrs': {'checked': False}}
+        ],
+        'tight': True,
+        'bullet': '-',
+        'attrs': {'depth': 0, 'ordered': False}
+    }
+]
+```
 
 # Command line options
 

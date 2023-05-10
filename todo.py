@@ -93,9 +93,9 @@ def _add_item(todo_item: dict, todofile_path: Path):
     if todofile_path and todofile_path.exists():
         todo = TodoListParser()
         todo.parse(todofile_path)
-        todo.items.append(todo_item)
-        # TODO: need to append in the MD file in the right place
-        # save_todo_backups(todofile_path, todo)
+        # TODO: need to append in the MD file in the right place (once we support sections, etc.)
+        todo.add_item_after(add=todo_item, after=todo.items[-1])
+        save_todo_backups(todofile_path, todo)
     else:
         raise typer.Exit(f"Cannot add item to {todofile_path} because it does not exist")
 
@@ -118,11 +118,13 @@ def add(
     prioritystr = f" P{priority}" if priority else ""
     itemstr = f"{prioritystr}{ownerstr}{duestr} {description}"
     todo_item = TaskListTraverser.create_item(itemstr, index=0, checked=done)
-    print_todo_item(todo_item)
     if not global_todo and settings.globals.local_todofile and settings.globals.local_todofile.exists():
+        console.print(f"[header]{settings.globals.local_todofile_pretty}[text]")
         _add_item(todo_item, settings.globals.local_todofile)
     else:
+        console.print(f"[header]{settings.globals.global_todofile_pretty}[text]")
         _add_item(todo_item, settings.globals.global_todofile)
+    print_todo_item(todo_item)
 
 
 def save_todo_backups(pathname: Path, todo):
