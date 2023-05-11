@@ -32,6 +32,12 @@ class Style(BaseModel):
     unchecked: str = '⚫'
     strike_done: bool = False
     dim_done: bool = False
+    index: str = 'bright_black'
+    hash: str = 'italic dim yellow'
+    text: str = 'white'
+    header: str = 'bold cyan'
+    warning: str = 'bold yellow'
+    error: str = 'red'
 
 
 styles = {

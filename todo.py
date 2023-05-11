@@ -69,7 +69,7 @@ def print_todo_item(item: dict):
         mdtext_part.style = "dim"
     if strike:
         mdtext_part.style = "strike"
-    console.print(index_part + hash_part + checkmark_part, mdtext_part, end='')
+    console().print(index_part + hash_part + checkmark_part, mdtext_part, end='')
 
 
 def print_todo_items(items: list):
@@ -83,12 +83,12 @@ def list():
     List todo items in the list
     """
     if settings.globals.global_todofile and settings.globals.global_todofile.exists():
-        console.print(f"[header]{settings.globals.global_todofile_pretty}[text]")
+        console().print(f"[header]{settings.globals.global_todofile_pretty}[text]")
         todo = TodoListParser()
         todo.parse(settings.globals.global_todofile)
         print_todo_items(todo.items)
     if settings.globals.local_todofile and settings.globals.local_todofile.exists():
-        console.print(f"[header]{settings.globals.local_todofile_pretty}[text]")
+        console().print(f"[header]{settings.globals.local_todofile_pretty}[text]")
         todo = TodoListParser()
         todo.parse(settings.globals.local_todofile)
         print_todo_items(todo.items)
@@ -99,7 +99,7 @@ def debug():
     """
     List configuration, settings, version and other debug info.
     """
-    console.print(f"{version_string()}")
+    console().print(f"{version_string()}")
 
     d = settings.constants.__dict__ | dict(settings.settings) | settings.globals.__dict__
     print(d)
@@ -135,10 +135,10 @@ def add(
     itemstr = f"{prioritystr}{ownerstr}{duestr} {description}"
     todo_item = TaskListTraverser.create_item(itemstr, index=0, checked=done)
     if not global_todo and settings.globals.local_todofile and settings.globals.local_todofile.exists():
-        console.print(f"[header]{settings.globals.local_todofile_pretty}[text]")
+        console().print(f"[header]{settings.globals.local_todofile_pretty}[text]")
         _add_item(todo_item, settings.globals.local_todofile)
     else:
-        console.print(f"[header]{settings.globals.global_todofile_pretty}[text]")
+        console().print(f"[header]{settings.globals.global_todofile_pretty}[text]")
         _add_item(todo_item, settings.globals.global_todofile)
     print_todo_item(todo_item)
 
@@ -175,7 +175,7 @@ def _done_undone_marker(done: bool, spec, id, index, match, all):
     """
     # ensure exactly one of spec, id, index, match or all is not None
     if sum([spec is not None, id is not None, index is not None, match is not None, all]) != 1:
-        # console.print("[error]ERROR:[/error] Exactly one of --id, --index, --match or --all must be provided")
+        # console().print("[error]ERROR:[/error] Exactly one of --id, --index, --match or --all must be provided")
         raise typer.BadParameter("Exactly one of --id, --index, --match or --all must be provided")
 
     if spec is not None:
@@ -211,7 +211,7 @@ def _done_undone_marker(done: bool, spec, id, index, match, all):
                     yield item
 
     if settings.globals.global_todofile and settings.globals.global_todofile.exists():
-        console.print(f"[header]{settings.globals.global_todofile}[text] changes:")
+        console().print(f"[header]{settings.globals.global_todofile}[text] changes:")
         todo = TodoListParser()
         todo.parse(settings.globals.global_todofile)
         for item in matching_items_iter(todo.items, id, index, match, all):
@@ -221,7 +221,7 @@ def _done_undone_marker(done: bool, spec, id, index, match, all):
         save_todo_backups(settings.globals.global_todofile, todo)
 
     if settings.globals.local_todofile and settings.globals.local_todofile.exists():
-        console.print(f"[header]{settings.globals.local_todofile}[text] changes:")
+        console().print(f"[header]{settings.globals.local_todofile}[text] changes:")
         todo = TodoListParser()
         todo.parse(settings.globals.local_todofile)
         for item in matching_items_iter(todo.items, id, index, match, all):

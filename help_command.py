@@ -46,7 +46,7 @@ All items will be logically combined into a single list and listed together.
 > Also, we will have options to add to the bottom or to the top (meaning right before or right after the last task list item).
 
 """)
-    console.print(md)
+    console().print(md)
 
 
 @app.command()
@@ -77,7 +77,7 @@ def config():
 {settings.get_default_config()}
 ```
 """)
-    console.print(md)
+    console().print(md)
 
 
 if __name__ == "__main__":
