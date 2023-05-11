@@ -56,8 +56,8 @@ class Settings(BaseSettings):
     mdfile: str = Field("TODO.md", env=constants.env_prefix + "MDFILE")
     verbose: bool = False
     keep_backups: int = 3   # number of backups to keep
-    style: Style | str = ''
     hide_hash: bool = False
+    style: Style | str = ''
 
     # def __init__(self, **kwargs):
     #     super().__init__(**kwargs)
