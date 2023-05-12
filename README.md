@@ -1,10 +1,20 @@
+# DrToDo
 This is a sample list of TODOs locally tracked in this git repo.
 
 To Do:
 - [x] @WarpedPixel this is ~~to be~~ done
 - [ ] to do by 2/3/23 #32
 - [ ] @WarpedPixel Implement add item write. Look at item list token will point to token in the parsed
-  stream and then we add after it (or before). Ex:
+  stream and then we add after it (or before).
+
+
+## Building
+
+This now builds with `poetry`. Install poetry, then run `poetry install` in the root folder. It will install all
+dependencies in a new environment and also the `todo` command. Run `todo --help` to test everything works.
+
+# Appendix: token format example
+
   ```python
   tokens = [
     {'type': 'paragraph', 'children': [{'type': 'text', 'raw': 'This is my cool project readme file.'}]},

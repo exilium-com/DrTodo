@@ -1,19 +1,19 @@
 import typer
 import rich
 import rich.markdown
-from rich_display import console
-import settings
+from .rich_display import console
+from .settings import constants, settings, get_default_config
 
 
-app = typer.Typer()
+manapp = typer.Typer()
 
 
-@app.command()
+@manapp.command()
 def mdfiles():
     md = rich.markdown.Markdown(f"""
 # Markdown Files
 
-By default, {settings.constants.appname} will look for any lists formatted as GitHub-style task lists in any Markdown files it reads.
+By default, {constants.appname} will look for any lists formatted as GitHub-style task lists in any Markdown files it reads.
 
 For example a file containing this:
 ```markdown
@@ -49,7 +49,7 @@ All items will be logically combined into a single list and listed together.
     console().print(md)
 
 
-@app.command()
+@manapp.command()
 def config():
     md = rich.markdown.Markdown(f"""
 # Settings
@@ -129,11 +129,8 @@ All the colors above use the rich style and color names. See [rich docs](https:/
 
 ## Sample config file (TOML)
 ```toml
-{settings.get_default_config()}
+{get_default_config()}
 ```
 """)
     console().print(md)
 
-
-if __name__ == "__main__":
-    app()

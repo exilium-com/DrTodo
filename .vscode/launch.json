@@ -8,12 +8,9 @@
             "name": "Python: Module",
             "type": "python",
             "request": "launch",
-            "module": "todo",
+            "module": "drtodo.main",
             "args": [
-                "add",
-                "implement add command",
-                "--priority",
-                "1"
+                "list",
             ],
             "justMyCode": false
         }

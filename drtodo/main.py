@@ -1,41 +1,39 @@
 from typing import Optional
 from pathlib import Path
-import settings
 import typer
 from rich import print
-from mdparser import TodoListParser, TaskListTraverser
 from git import Repo
 import rich.markdown
 import re
-import help_command
-from rich_display import console
+from .settings import constants, settings, globals
+from .mdparser import TodoListParser, TaskListTraverser
+from .help_command import manapp
+from .rich_display import console
 
-
-settings.initialize()  # HACK: need to initialize this before main() is called
 
 app = typer.Typer(no_args_is_help=True,
                   rich_markup_mode="markdown",
-                  help="**{settings.constants.appname}, MD**: *a straightforward todo list manager for markdown files in git repos.*",
-                  epilog=f"DrTodo can manage items in a global todo list ({settings.globals.global_todofile_pretty})"
-                  f" and in a local todo list ({settings.globals.local_todofile_pretty or 'if the current folder is under a git repo'})."
+                  help="**{constants.appname}, MD**: *a straightforward todo list manager for markdown files in git repos.*",
+                  epilog=f"DrTodo can manage items in a global todo list ({globals.global_todofile_pretty})"
+                  f" and in a local todo list ({globals.local_todofile_pretty or 'if the current folder is under a git repo'})."
                   f" Settings are read from config files and env variables (see *todo man config*).",
                   rich_help_panel="Integration")
 
 
 def version_string() -> str:
-    return f"{settings.constants.appname} v{settings.constants.version}"
+    return f"{constants.appname} v{constants.version}"
 
 
 def ensure_appdir(may_create: bool = False) -> None:
-    if not settings.constants.appdir.exists():
+    if not constants.appdir.exists():
         if not may_create:
-            print(f"DrTodo folder {settings.constants.appdir} does not exist. Use [bold]todo init[/bold] to create it.")
+            print(f"DrTodo folder {constants.appdir} does not exist. Use [bold]todo init[/bold] to create it.")
         else:
-            settings.constants.appdir.mkdir(parents=False, exist_ok=False)
-            assert settings.globals.global_todofile and not settings.globals.global_todofile.exists()
-            settings.globals.global_todofile.touch()
-            repo = Repo.init(settings.constants.appdir)
-            repo.index.add([settings.globals.global_todofile])
+            constants.appdir.mkdir(parents=False, exist_ok=False)
+            assert globals.global_todofile and not globals.global_todofile.exists()
+            globals.global_todofile.touch()
+            repo = Repo.init(constants.appdir)
+            repo.index.add([globals.global_todofile])
 
 
 @app.command()
@@ -50,19 +48,19 @@ def print_todo_item(item: dict):
     # print a green large checkmark if checked is True or a blank empty box if checked is False
     # and properly render the markdown text with rich
     # trim trailing whitespace too
-    checked_bullet = settings.settings.style.checked
-    unchecked_bullet = settings.settings.style.unchecked
+    checked_bullet = settings.style.checked
+    unchecked_bullet = settings.style.unchecked
 
     strike = ""
     dim = ""
     if not item['checked']:
-        if settings.settings.style.dim_done:
+        if settings.style.dim_done:
             dim = "[dim]"
-        if settings.settings.style.strike_done:
+        if settings.style.strike_done:
             strike = "[strike]"
 
     index_part = f"[index]{dim}{strike}{item['index']:>3}: "
-    hash_part = f"[hash]{dim}{strike}{item['id'][:7]} " if not settings.settings.hide_hash else ""
+    hash_part = f"[hash]{dim}{strike}{item['id'][:7]} " if not settings.hide_hash else ""
     checkmark_part = f"[text]{dim}{strike}{checked_bullet if item['checked'] else unchecked_bullet} "
     mdtext_part = rich.markdown.Markdown(item['text'].rstrip())
     if dim:
@@ -82,15 +80,15 @@ def list():
     """
     List todo items in the list
     """
-    if settings.globals.global_todofile and settings.globals.global_todofile.exists():
-        console().print(f"[header]{settings.globals.global_todofile_pretty}[text]")
+    if globals.global_todofile and globals.global_todofile.exists():
+        console().print(f"[header]{globals.global_todofile_pretty}[text]")
         todo = TodoListParser()
-        todo.parse(settings.globals.global_todofile)
+        todo.parse(globals.global_todofile)
         print_todo_items(todo.items)
-    if settings.globals.local_todofile and settings.globals.local_todofile.exists():
-        console().print(f"[header]{settings.globals.local_todofile_pretty}[text]")
+    if globals.local_todofile and globals.local_todofile.exists():
+        console().print(f"[header]{globals.local_todofile_pretty}[text]")
         todo = TodoListParser()
-        todo.parse(settings.globals.local_todofile)
+        todo.parse(globals.local_todofile)
         print_todo_items(todo.items)
 
 
@@ -101,7 +99,7 @@ def debug():
     """
     console().print(f"{version_string()}")
 
-    d = settings.constants.__dict__ | dict(settings.settings) | settings.globals.__dict__
+    d = constants.__dict__ | dict(settings.settings) | globals.__dict__
     print(d)
 
 
@@ -134,12 +132,12 @@ def add(
     prioritystr = f" P{priority}" if priority else ""
     itemstr = f"{prioritystr}{ownerstr}{duestr} {description}"
     todo_item = TaskListTraverser.create_item(itemstr, index=0, checked=done)
-    if not global_todo and settings.globals.local_todofile and settings.globals.local_todofile.exists():
-        console().print(f"[header]{settings.globals.local_todofile_pretty}[text]")
-        _add_item(todo_item, settings.globals.local_todofile)
+    if not global_todo and globals.local_todofile and globals.local_todofile.exists():
+        console().print(f"[header]{globals.local_todofile_pretty}[text]")
+        _add_item(todo_item, globals.local_todofile)
     else:
-        console().print(f"[header]{settings.globals.global_todofile_pretty}[text]")
-        _add_item(todo_item, settings.globals.global_todofile)
+        console().print(f"[header]{globals.global_todofile_pretty}[text]")
+        _add_item(todo_item, globals.global_todofile)
     print_todo_item(todo_item)
 
 
@@ -154,7 +152,7 @@ def save_todo_backups(pathname: Path, todo):
     todo.write(tmpfilepath)
 
     # if file write worked, then we can perform the rename dance
-    n = settings.settings.keep_backups
+    n = settings.keep_backups
     if n > 0:
         # we keep n backups named as '.bak-1' (for the most recent n-1 backup), '.bak-2', etc.)
         # first delete the oldest backup
@@ -210,25 +208,25 @@ def _done_undone_marker(done: bool, spec, id, index, match, all):
                 if re.search(match, item['text']):
                     yield item
 
-    if settings.globals.global_todofile and settings.globals.global_todofile.exists():
-        console().print(f"[header]{settings.globals.global_todofile}[text] changes:")
+    if globals.global_todofile and globals.global_todofile.exists():
+        console().print(f"[header]{globals.global_todofile}[text] changes:")
         todo = TodoListParser()
-        todo.parse(settings.globals.global_todofile)
+        todo.parse(globals.global_todofile)
         for item in matching_items_iter(todo.items, id, index, match, all):
             item['checked'] = done
             print_todo_item(item)
         # write back to file
-        save_todo_backups(settings.globals.global_todofile, todo)
+        save_todo_backups(globals.global_todofile, todo)
 
-    if settings.globals.local_todofile and settings.globals.local_todofile.exists():
-        console().print(f"[header]{settings.globals.local_todofile}[text] changes:")
+    if globals.local_todofile and globals.local_todofile.exists():
+        console().print(f"[header]{globals.local_todofile}[text] changes:")
         todo = TodoListParser()
-        todo.parse(settings.globals.local_todofile)
+        todo.parse(globals.local_todofile)
         for item in matching_items_iter(todo.items, id, index, match, all):
             item['checked'] = done
             print_todo_item(item)
         # write back to file
-        save_todo_backups(settings.globals.local_todofile, todo)
+        save_todo_backups(globals.local_todofile, todo)
 
 
 # done [--id <id> | --index <index> | --all | --match <regular expression> | <specification>] (exactly one option must be provided)
@@ -261,7 +259,7 @@ def undone(
     _done_undone_marker(False, spec, id, index, match, all)
 
 
-app.add_typer(help_command.app,
+app.add_typer(manapp,
               name="man",
               help="Show detailed help and context for settings, file format and heuristics",
               no_args_is_help=True)
@@ -280,11 +278,11 @@ panel_FILESELECTION = "File Selection Options"
 # Typer callback handles global options like --mdfile and --verbose
 @app.callback()
 def main(
-    settings: Optional[Path] = typer.Option(settings.constants.appdir, "--settings", "-s", help="Settings file to use",
+    settings: Optional[Path] = typer.Option(constants.appdir, "--settings", "-s", help="Settings file to use",
                                             rich_help_panel=panel_GLOBAL),
     verbose: Optional[bool] = typer.Option(False, "--verbose", "-v", help="Verbose output",
                                            rich_help_panel=panel_GLOBAL),
-    mdfile: Optional[Path] = typer.Option(settings.settings.mdfile, help="Markdown file to use for todo list",
+    mdfile: Optional[Path] = typer.Option(settings.mdfile, help="Markdown file to use for todo list",
                                           rich_help_panel=panel_FILESELECTION),
     version: Optional[bool] = typer.Option(False, "--version", "-V", help="Show version and exit",
                                            callback=_version_callback, is_eager=True, rich_help_panel=panel_GLOBAL),

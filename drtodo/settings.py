@@ -76,7 +76,7 @@ class Settings(BaseSettings):
         # }
 
 
-settings: Settings
+settings: Settings = None
 
 
 class Globals:
@@ -195,3 +195,6 @@ def get_default_config() -> str:
                 tomlv = str(v)
             x += f"{k} = {tomlv}\n"
     return x
+
+
+initialize()  # HACK: need to initialize this before main() is called

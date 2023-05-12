@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "DrTodo"
+version = "0.5.0"
+description = "DrTodo, MD: todo list manager using markdown files and git"
+authors = ["exilium <info@exilium.com>"]
+readme = "drtodo/README.md"
+
+[tool.poetry.scripts]
+todo = "drtodo.main:app"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+typer = "*"
+rich = "*"
+pygithub = "*"
+"ruamel.yaml" = "*"
+pydantic = "*"
+tomli = {version = "*", python = "<3.11"}
+gitpython = "*"
+mistune = {git = "https://github.com/exilium-com/mistune.git"}
+
+[tool.poetry.group.dev.dependencies]
+black = "*"
+flake8 = "*"
+pytest = "^6.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
