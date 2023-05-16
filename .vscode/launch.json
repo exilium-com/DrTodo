@@ -5,12 +5,66 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Module",
+            "name": "DrTodo: list",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
             "args": [
                 "list",
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "DrTodo: man",
+            "type": "python",
+            "request": "launch",
+            "module": "drtodo.main",
+            "args": [
+                "man",
+                "config"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "DrTodo: debug",
+            "type": "python",
+            "request": "launch",
+            "module": "drtodo.main",
+            "args": [
+                "debug",
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "DrTodo: done 1",
+            "type": "python",
+            "request": "launch",
+            "module": "drtodo.main",
+            "args": [
+                "done",
+                "1"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "DrTodo: undone 1",
+            "type": "python",
+            "request": "launch",
+            "module": "drtodo.main",
+            "args": [
+                "undone",
+                "1"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "Python: Module",
+            "type": "python",
+            "request": "launch",
+            "module": "drtodo.main",
+            "args": [
+                "done",
+                "1"
             ],
             "justMyCode": false
         }

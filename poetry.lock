@@ -466,14 +466,10 @@ description = "A sane and fast Markdown parser with useful plugins and renderers
 category = "main"
 optional = false
 python-versions = ">=3.7"
-files = []
-develop = false
-
-[package.source]
-type = "git"
-url = "https://github.com/exilium-com/mistune.git"
-reference = "HEAD"
-resolved_reference = "5bc18112f527cbdaf6c20099760d142a746ca7a3"
+files = [
+    {file = "mistune-3.0.0rc5-py3-none-any.whl", hash = "sha256:4f6a4e6624a99bf1e48a2d2868715a5939d3932f988d54e18d36c8585cd9b479"},
+    {file = "mistune-3.0.0rc5.tar.gz", hash = "sha256:492d88fed4a8b5a65548f69f378dd8aa607537d1ef4ad7d7a1cf88fb2249a2e0"},
+]
 
 [[package]]
 name = "mypy-extensions"
@@ -1020,4 +1016,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "e9b76564eab5b82cfda509ac372176ffe401755bd8b9646e40fae5176c8705dd"
+content-hash = "3e9326feefea8a6d4fc51135133141479e487763b739d3a70147ed00a34002d9"

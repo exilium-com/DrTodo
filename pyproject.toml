@@ -4,6 +4,7 @@ version = "0.5.0"
 description = "DrTodo, MD: todo list manager using markdown files and git"
 authors = ["exilium <info@exilium.com>"]
 readme = "drtodo/README.md"
+license = "MIT"
 
 [tool.poetry.scripts]
 todo = "drtodo.main:app"
@@ -17,7 +18,7 @@ pygithub = "*"
 pydantic = "*"
 tomli = {version = "*", python = "<3.11"}
 gitpython = "*"
-mistune = {git = "https://github.com/exilium-com/mistune.git"}
+mistune = {version = "3.0.0rc5", allow-prereleases = true}
 
 [tool.poetry.group.dev.dependencies]
 black = "*"

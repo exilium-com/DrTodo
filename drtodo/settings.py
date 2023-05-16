@@ -10,6 +10,7 @@ try:
 except ImportError:
     import tomli as toml
 from git import Repo
+from . import __version__
 
 
 __all__ = ["constants", "settings", "globals", "initialize", "make_pretty_path"]
@@ -19,7 +20,7 @@ __all__ = ["constants", "settings", "globals", "initialize", "make_pretty_path"]
 class Constants:
     appname: str = "DrTodo"
     appdir: Path = Path(typer.get_app_dir(appname, force_posix=True))
-    version: str = "0.1.0"
+    version: str = __version__
     env_prefix = appname.upper() + "_"
     username: str = os.getlogin()
 

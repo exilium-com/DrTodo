@@ -53,7 +53,7 @@ def print_todo_item(item: dict):
 
     strike = ""
     dim = ""
-    if not item['checked']:
+    if item['checked']:
         if settings.style.dim_done:
             dim = "[dim]"
         if settings.style.strike_done:
@@ -99,8 +99,8 @@ def debug():
     """
     console().print(f"{version_string()}")
 
-    d = constants.__dict__ | dict(settings.settings) | globals.__dict__
-    print(d)
+    d = constants.__dict__ | dict(settings) | globals.__dict__
+    console.print(d)
 
 
 def _add_item(todo_item: dict, todofile_path: Path):

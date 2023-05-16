@@ -1,0 +1,8 @@
+mdfile = 'TEST.md'
+verbose = true
+keep_backups = 2
+hide_hash = false
+[style]
+strike_done = true
+dim_done = false
+header = 'italic cyan'

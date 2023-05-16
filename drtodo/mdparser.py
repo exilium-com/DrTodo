@@ -1,9 +1,8 @@
 
 import mistune
 from pathlib import Path
-import re
 from mistune.renderers.markdown import MarkdownRenderer
-from mistune.plugins.task_lists import task_lists
+from .mistuneplugin import task_lists, split_task_item
 
 
 class TokenTraverser:
@@ -18,8 +17,6 @@ class TokenTraverser:
 
 
 class TaskListTraverser(TokenTraverser):
-
-    TASK_LIST_ITEM = re.compile(r'^(\[[ xX]\])\s+')
 
     @staticmethod
     def calc_git_hash(text):
@@ -38,16 +35,19 @@ class TaskListTraverser(TokenTraverser):
     @staticmethod
     def create_item_token(checked: bool, text: str) -> dict:
         return {
-            'type': 'task_list_item',
+            'type': 'list_item',
             'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': text}]}],
-            'attrs': {'checked': checked}
+            'attrs': {'checked': checked, 'task_text': text}
         }
 
     def find_task_lists(self, tokens) -> list:
         found_items = []
 
         def match_task_item(tok, parent_tokens):
-            if tok['type'] != 'task_list_item':
+            if tok['type'] != 'list_item':
+                return
+            if 'attrs' not in tok or 'checked' not in tok['attrs']:
+                # not a task recognized by the mistune plugin
                 return
 
             if 'task_item' in tok:
@@ -57,18 +57,11 @@ class TaskListTraverser(TokenTraverser):
 
             children = tok['children']
             if children:
-                text_list = []
-
-                def append_text(t, _):
-                    text_list.append(t['raw'])
-
-                self.traverse_tokens(children, 'text', append_text)
-                text = ''.join(text_list)
-                task_item = self.create_item(text, index=len(found_items), checked=tok['attrs']['checked'], token=tok)
+                task_item = self.create_item(tok['attrs']['task_text'], index=len(found_items), checked=tok['attrs']['checked'], token=tok)
                 task_item['parent'] = parent_tokens
                 found_items.append(tok['task_item'])
 
-        self.traverse_tokens(tokens, 'task_list_item', match_task_item)
+        self.traverse_tokens(tokens, 'list_item', match_task_item)
         return found_items
 
 
@@ -100,15 +93,19 @@ class TodoListParser:
         # add the token to the state, by adding to the parent token (which is a list) after the 'after' token
         after['parent'].insert(relative_index, add['token'])
         # done
-        from rich import print
-        print(after['parent'])
+        # from rich import print
+        # print(after['parent'])
 
     def _update_md_from_items(self):
         """Update the markdown text from the updated state in the items. Must be called before write()"""
         for item in self.items:
             token = item['token']
             token['attrs']['checked'] = item['checked']
-            token['children'][0]['children'][0]['raw'] = item['text']
+            text_part = item['text'][:-1] if item['text'].endswith('\n') else item['text']   # trim just \n
+            rawtext = f"[{'x' if item['checked'] else ' '}] {text_part}"
+            assert token['children'][0]['type'] == 'block_text'
+            # overwrite the children as a simple text token
+            token['children'][0]['children'] = [{'type': 'text', 'raw': rawtext}]
 
     def write(self, pathname: Path):
         self._update_md_from_items()

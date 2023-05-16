@@ -16,22 +16,50 @@ dependencies in a new environment and also the `todo` command. Run `todo --help`
 # Appendix: token format example
 
   ```python
-  tokens = [
+tokens =
+[
     {'type': 'paragraph', 'children': [{'type': 'text', 'raw': 'This is my cool project readme file.'}]},
     {'type': 'blank_line'},
     {'type': 'heading', 'attrs': {'level': 2}, 'style': 'axt', 'children': [{'type': 'text', 'raw': 'TODO'}]},
+    {'type': 'blank_line'},
     {
         'type': 'list',
         'children': [
             {
-                'type': 'task_list_item',
-                'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': 'write a readme'}]}],
-                'attrs': {'checked': True}
+                'type': 'list_item',
+                'children': [
+                    {
+                        'type': 'block_text',
+                        'children': [{'type': 'text', 'raw': '['}, {'type': 'text', 'raw': 'x] write a readme'}]
+                    }
+                ],
+                'attrs': {'checked': True, 'task_text': 'write a readme\n'},
+                'task_item': {
+                    'checked': True,
+                    'text': 'write a readme\n',
+                    'id': '01bd483d62ed72acfc9ca46c93242d5bf45979de',
+                    'index': 0,
+                    'token': ...,
+                    'parent': ...
+                }
             },
             {
-                'type': 'task_list_item',
-                'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': 'make it useful'}]}],
-                'attrs': {'checked': False}
+                'type': 'list_item',
+                'children': [
+                    {
+                        'type': 'block_text',
+                        'children': [{'type': 'text', 'raw': '['}, {'type': 'text', 'raw': ' ] make it useful'}]
+                    }
+                ],
+                'attrs': {'checked': False, 'task_text': 'make it useful\n'},
+                'task_item': {
+                    'checked': False,
+                    'text': 'make it useful\n',
+                    'id': 'e046af4d0e84752a3bf1dd9dc74d5cb453b2f5b0',
+                    'index': 1,
+                    'token': ...,
+                    'parent': ...
+                }
             }
         ],
         'tight': True,
@@ -39,11 +67,40 @@ dependencies in a new environment and also the `todo` command. Run `todo --help`
         'attrs': {'depth': 0, 'ordered': False}
     },
     {'type': 'heading', 'attrs': {'level': 2}, 'style': 'axt', 'children': [{'type': 'text', 'raw': 'Bugs assigned to me'}]},
+    {'type': 'blank_line'},
     {
         'type': 'list',
         'children': [
-            {'type': 'task_list_item', 'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': 'bug 1'}]}], 'attrs': {'checked': False}},
-            {'type': 'task_list_item', 'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': 'bug 2'}]}], 'attrs': {'checked': False}}
+            {
+                'type': 'list_item',
+                'children': [
+                    {'type': 'block_text', 'children': [{'type': 'text', 'raw': '['}, {'type': 'text', 'raw': ' ] bug 1'}]}
+                ],
+                'attrs': {'checked': False, 'task_text': 'bug 1\n'},
+                'task_item': {
+                    'checked': False,
+                    'text': 'bug 1\n',
+                    'id': 'cadea03965ec665c41b0336412d3cbf3624b58db',
+                    'index': 2,
+                    'token': ...,
+                    'parent': ...
+                }
+            },
+            {
+                'type': 'list_item',
+                'children': [
+                    {'type': 'block_text', 'children': [{'type': 'text', 'raw': '['}, {'type': 'text', 'raw': ' ] bug 2'}]}
+                ],
+                'attrs': {'checked': False, 'task_text': 'bug 2\n'},
+                'task_item': {
+                    'checked': False,
+                    'text': 'bug 2\n',
+                    'id': 'a69434ae372dca71a54f3ed1a6ec444723fb42d7',
+                    'index': 3,
+                    'token': ...,
+                    'parent': ...
+                }
+            }
         ],
         'tight': True,
         'bullet': '-',

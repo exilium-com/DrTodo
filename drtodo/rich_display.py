@@ -6,6 +6,7 @@ from .settings import settings
 
 _console = None
 
+
 def console():
     global _console
     if not _console:
