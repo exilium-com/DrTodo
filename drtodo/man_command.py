@@ -2,15 +2,15 @@ import typer
 import rich
 import rich.markdown
 from .rich_display import console
-from .settings import constants, settings, get_default_config
+from .settings import constants, get_default_config
 
 
+raw_man_output = False
 manapp = typer.Typer()
 
 
-@manapp.command()
-def mdfiles():
-    md = rich.markdown.Markdown(f"""
+def md_mdfiles():
+    return f"""
 # Markdown Files
 
 By default, {constants.appname} will look for any lists formatted as GitHub-style task lists in any Markdown files it reads.
@@ -45,13 +45,11 @@ All items will be logically combined into a single list and listed together.
 
 > Also, we will have options to add to the bottom or to the top (meaning right before or right after the last task list item).
 
-""")
-    console().print(md)
+"""
 
 
-@manapp.command()
-def config():
-    md = rich.markdown.Markdown(f"""
+def md_config():
+    return f"""
 # Settings
 
 DrTodo allows plenty of configuration options that can be specialized by folder or per user.
@@ -131,6 +129,37 @@ All the colors above use the rich style and color names. See [rich docs](https:/
 ```toml
 {get_default_config()}
 ```
-""")
+"""
+
+
+@manapp.command()
+def mdfiles():
+    md = md_mdfiles()
+    if not raw_man_output:
+        md = rich.markdown.Markdown(md)
     console().print(md)
 
+
+@manapp.command()
+def config():
+    md = md_config()
+    if not raw_man_output:
+        md = rich.markdown.Markdown(md)
+    console().print(md)
+
+
+@manapp.command()
+def all():
+    md = md_mdfiles() + "\n\n" + md_config()
+    if not raw_man_output:
+        md = rich.markdown.Markdown(md)
+    console().print(md)
+
+
+# handle global options
+@manapp.callback()
+def main(
+    raw: bool = typer.Option(False, "--raw", help="Print the raw markdown man content"),
+):
+    global raw_man_output
+    raw_man_output = raw

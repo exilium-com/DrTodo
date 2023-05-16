@@ -7,7 +7,7 @@ import rich.markdown
 import re
 from .settings import constants, settings, globals
 from .mdparser import TodoListParser, TaskListTraverser
-from .help_command import manapp
+from .man_command import manapp
 from .rich_display import console
 
 

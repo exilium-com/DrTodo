@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "DrTodo"
-version = "0.5.0"
+version = "0.5.1"
 description = "DrTodo, MD: todo list manager using markdown files and git"
 authors = ["exilium <info@exilium.com>"]
 readme = "drtodo/README.md"
