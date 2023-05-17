@@ -1,4 +1,8 @@
 # DrToDo
+
+[![Python Validated](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml/badge.svg)](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml)
+
+
 This is a sample list of TODOs locally tracked in this git repo.
 
 To Do:

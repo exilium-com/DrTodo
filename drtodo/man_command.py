@@ -13,7 +13,8 @@ def md_mdfiles():
     return f"""
 # Markdown Files
 
-By default, {constants.appname} will look for any lists formatted as GitHub-style task lists in any Markdown files it reads.
+By default, {constants.appname} will look for any lists formatted as GitHub-style task lists in
+any Markdown files it reads.
 
 For example a file containing this:
 ```markdown
@@ -40,10 +41,11 @@ $ todo list
 
 All items will be logically combined into a single list and listed together.
 
-> In the future, it will be possible to specify which section in a Markdown file to use as a list, and then all other lists
-> will be ignored.
+> In the future, it will be possible to specify which section in a Markdown file to use as a list,
+> and then all other lists will be ignored.
 
-> Also, we will have options to add to the bottom or to the top (meaning right before or right after the last task list item).
+> Also, we will have options to add to the bottom or to the top (meaning right before or right after the
+> last task list item).
 
 """
 
@@ -105,7 +107,8 @@ warning = 'bold yellow'     # color of warnings
 error = 'red'               # color of errors
 ```
 
-All the colors above use the rich style and color names. See [rich docs](https://rich.readthedocs.io/en/latest/style.html#style) for more info.
+All the colors above use the rich style and color names.
+See [rich docs](https://rich.readthedocs.io/en/latest/style.html#style) for more info.
 
 ## Global Folder
 - `~/.drtodo`                     global config folder

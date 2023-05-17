@@ -25,8 +25,7 @@ ruff = "*"
 pytest = "^6.0.0"
 
 [tool.ruff]
-# Allow lines to be as long as 120 characters.
-line-length = 120
+line-length = 125
 
 [build-system]
 requires = ["poetry-core"]

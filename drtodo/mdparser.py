@@ -2,7 +2,7 @@
 import mistune
 from pathlib import Path
 from mistune.renderers.markdown import MarkdownRenderer
-from .mistuneplugin import task_lists, split_task_item
+from .mistuneplugin import task_lists
 
 
 class TokenTraverser:
@@ -25,7 +25,10 @@ class TaskListTraverser(TokenTraverser):
 
     @staticmethod
     def create_item(text, *, index: int, checked: bool = False, token: dict = None) -> dict:
-        """creates a dict to represent a task list item from text and an index. If token is given, it is used, otherwise a new one is created."""
+        """
+        creates a dict to represent a task list item from text and an index.
+        If token is given, it is used, otherwise a new one is created.
+        """
         id = TaskListTraverser.calc_git_hash(text)
         token = token or TaskListTraverser.create_item_token(checked, text)
         item = {'checked': checked, 'text': text, 'id': id, 'index': index, 'token': token}
@@ -57,7 +60,10 @@ class TaskListTraverser(TokenTraverser):
 
             children = tok['children']
             if children:
-                task_item = self.create_item(tok['attrs']['task_text'], index=len(found_items), checked=tok['attrs']['checked'], token=tok)
+                task_item = self.create_item(tok['attrs']['task_text'],
+                                             index=len(found_items),
+                                             checked=tok['attrs']['checked'],
+                                             token=tok)
                 task_item['parent'] = parent_tokens
                 found_items.append(tok['task_item'])
 
