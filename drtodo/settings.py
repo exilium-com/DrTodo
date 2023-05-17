@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+import getpass
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Any, Union
@@ -25,7 +25,7 @@ class Constants:
     appdir: Path = Path(typer.get_app_dir(appname, force_posix=True))
     version: str = __version__
     env_prefix = appname.upper() + "_"
-    username: str = os.getlogin()
+    username: str = getpass.getuser()
 
 
 constants: Constants = Constants()
