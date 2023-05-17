@@ -21,7 +21,7 @@ typing-extensions = {version = "^4.5.0", python = "<3.11"}
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
-flake8 = "*"
+ruff = "*"
 pytest = "^6.0.0"
 
 [tool.ruff]
