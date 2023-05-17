@@ -11,13 +11,14 @@ from .man_command import manapp
 from .rich_display import console
 
 
-app = typer.Typer(no_args_is_help=True,
-                  rich_markup_mode="markdown",
-                  help="**{constants.appname}, MD**: *a straightforward todo list manager for markdown files in git repos.*",
-                  epilog=f"DrTodo can manage items in a global todo list ({globals.global_todofile_pretty})"
-                  f" and in a local todo list ({globals.local_todofile_pretty or 'if the current folder is under a git repo'})."
-                  f" Settings are read from config files and env variables (see *todo man config*).",
-                  rich_help_panel="Integration")
+app = typer.Typer(
+    no_args_is_help=True,
+    rich_markup_mode="markdown",
+    help="**{constants.appname}, MD**: *a straightforward todo list manager for markdown files in git repos.*",
+    epilog=f"DrTodo can manage items in a global todo list ({globals.global_todofile_pretty})"
+    f" and in a local todo list ({globals.local_todofile_pretty or 'if the current folder is under a git repo'})."
+    f" Settings are read from config files and env variables (see *todo man config*).",
+    rich_help_panel="Integration")
 
 
 def version_string() -> str:
@@ -122,7 +123,8 @@ def add(
     due: str = typer.Option(None, "--due", "-d", help="Due date in any format"),
     owner: str = typer.Option(None, "--owner", "-o", help="Owner userid or name"),
     done: bool = typer.Option(False, "--done", "-D", help="Add item marked as done"),
-    global_todo: bool = typer.Option(False, "--global", "-G", help="Add item to global todo list, even if current folder is under a git repo"),
+    global_todo: bool = typer.Option(False, "--global", "-G",
+                                     help="Add item to global todo list, even if current folder is under a git repo"),
 ):
     """
     Add a new todo item to the list
@@ -144,7 +146,7 @@ def add(
 def save_todo_backups(pathname: Path, todo):
     def make_backup_path(i: int) -> Path:
         assert isinstance(i, int) and i > 0
-        # files are hidden and have a '.bak-1' extension for the most recent backup, '.bak-2' for the next most recent, etc.
+        # files are hidden and have a '.bak-1' extension for the most recent backup, '.bak-2' for the next, etc.
         return pathname.with_name(f".{pathname.name.removeprefix('.')}.bak-{i}")
 
     # first write to a temp file with a '.tmp' extension
@@ -229,7 +231,8 @@ def _done_undone_marker(done: bool, spec, id, index, match, all):
         save_todo_backups(globals.local_todofile, todo)
 
 
-# done [--id <id> | --index <index> | --all | --match <regular expression> | <specification>] (exactly one option must be provided)
+# done [--id <id> | --index <index> | --all | --match <regular expression> | <specification>]
+# (exactly one option must be provided)
 @app.command()
 def done(
     spec: str = typer.Argument(None, help="ID, index or regular expression to match item text"),
@@ -244,7 +247,8 @@ def done(
     _done_undone_marker(True, spec, id, index, match, all)
 
 
-# undone [--id <id> | --index <index> | --all | --match <regular expression> | <specification>] (exactly one option must be provided)
+# undone [--id <id> | --index <index> | --all | --match <regular expression> | <specification>]
+# (exactly one option must be provided)
 @app.command()
 def undone(
     spec: str = typer.Argument(None, help="ID, index or regular expression to match item text"),

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "DrTodo"
-version = "0.5.1"
+version = "0.5.2"
 description = "DrTodo, MD: todo list manager using markdown files and git"
 authors = ["exilium <info@exilium.com>"]
 readme = "drtodo/README.md"
@@ -10,20 +10,23 @@ license = "MIT"
 todo = "drtodo.main:app"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
 typer = "*"
 rich = "*"
-pygithub = "*"
-"ruamel.yaml" = "*"
 pydantic = "*"
 tomli = {version = "*", python = "<3.11"}
 gitpython = "*"
 mistune = {version = "3.0.0rc5", allow-prereleases = true}
+typing-extensions = {version = "^4.5.0", python = "<3.11"}
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
 flake8 = "*"
 pytest = "^6.0.0"
+
+[tool.ruff]
+# Allow lines to be as long as 120 characters.
+line-length = 120
 
 [build-system]
 requires = ["poetry-core"]

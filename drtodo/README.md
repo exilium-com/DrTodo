@@ -1,4 +1,4 @@
-# `DrTodo`
+# DrTodo
 
 **DrToDo, MD**: *a straightforward todo list manager for markdown files in git repos.*
 
@@ -43,7 +43,7 @@ $ todo done 0
 
 ## Contents
 
-- [`DrTodo`](#drtodo)
+- [DrTodo](#drtodo)
   - [Quick Start](#quick-start)
     - [installation](#installation)
     - [initialization](#initialization)

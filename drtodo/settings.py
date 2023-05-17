@@ -1,17 +1,20 @@
 from __future__ import annotations
+
 import os
-from pathlib import Path
 from dataclasses import dataclass
-from typing import Any, Optional
+from pathlib import Path
+from typing import Optional, Any, Union
+
 import typer
-from pydantic import BaseSettings, Field, BaseModel
+from pydantic import BaseModel, BaseSettings, Field
+
 try:
     import tomllib as toml
 except ImportError:
     import tomli as toml
 from git import Repo
-from . import __version__
 
+from . import __version__
 
 __all__ = ["constants", "settings", "globals", "initialize", "make_pretty_path"]
 
@@ -58,7 +61,7 @@ class Settings(BaseSettings):
     verbose: bool = False
     keep_backups: int = 3   # number of backups to keep
     hide_hash: bool = False
-    style: Style | str = ''
+    style: Union[Style, str] = ''
 
     # def __init__(self, **kwargs):
     #     super().__init__(**kwargs)
