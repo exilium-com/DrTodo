@@ -1,4 +1,4 @@
-name: Build project
+name: Build and Publish
 
 on:
     workflow_dispatch:
@@ -98,7 +98,7 @@ jobs:
           run: |
             pushd dist
             echo "::group::Zip details"
-            zip -r ../../${{ env.platform }}.zip .
+            zip -r ../${{ env.appname }}-${{ env.platform }}.zip .
             echo "::endgroup::"
             popd
 
@@ -107,8 +107,7 @@ jobs:
           with:
             name: Build-${{ env.platform }}-${{ needs.versioning.outputs.version }}
             retention-days: 7
-            path: |
-                ./${{ env.platform }}.zip
+            path: ./${{ env.appname }}-${{ env.platform }}.zip
 
         - name: Upload Release to GitHub Release
           # ONLY for official builds
@@ -118,8 +117,8 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           with:
             upload_url: ${{ needs.versioning.outputs.upload_url }}
-            asset_path: ./${{ env.platform }}.zip
-            asset_name: ${{ env.platform }}.zip
+            asset_path: ./${{ env.appname }}-${{ env.platform }}.zip
+            asset_name: ${{ env.appname }}-${{ env.platform }}.zip
             asset_content_type: application/zip
 
     publishBuildsToGitHub:
