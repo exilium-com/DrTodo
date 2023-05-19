@@ -1,0 +1,161 @@
+name: Build project
+
+on:
+    workflow_dispatch:
+        inputs:
+            publish_builds:
+                description: Publish builds
+                required: true
+                default: "true"
+
+env:
+    # Python version to use for official builds (must be supported by poetry, app and github actions)
+    python-version: "3.9"
+    # Target Platform (for now just used to name files, artifacts and folders)
+    platform: "pure"
+    # app name used for naming files and MUST be the same as the name in pyproject.toml and PyPI.org
+    appname: "drtodo"
+
+jobs:
+    versioning:
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.semantic_version.outputs.version }}
+            version_tag: ${{ steps.semantic_version.outputs.version_tag }}
+            upload_url:  ${{ steps.create_release.outputs.upload_url }}
+            release_id: ${{ steps.create_release.outputs.id }}
+        steps:
+        - name: Check out branch
+          uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+
+        - name: Generate Version Numbers
+          id: semantic_version
+          uses: paulhatch/semantic-version@v5.0.2
+          with:
+            # The prefix to use to identify tags
+            tag_prefix: "v"
+            # A string which, if present in a git commit, indicates that a change represents a
+            # major (breaking) change, supports regular expressions wrapped with '/'
+            major_pattern: "[MAJOR]"
+            # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
+            minor_pattern: "[MINOR]"
+            # A string to determine the format of the version output
+            version_format: "${major}.${minor}.${patch}rc${increment}"
+            # If this is set to true, *every* commit will be treated as a new version.
+            bump_each_commit: true
+
+        - name: Create Release
+          id: create_release
+          # ONLY for official builds
+          if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/work' || contains(github.ref, 'release')
+          uses: actions/create-release@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # automatically provided by GitHub
+          with:
+            tag_name: ${{ steps.semantic_version.outputs.version_tag }}
+            release_name: Build v${{ steps.semantic_version.outputs.version }}
+            body: |
+                Build v${{ steps.semantic_version.outputs.version }} created from ${{ github.ref }} @${{ github.sha }}
+            draft: true
+            prerelease: false
+
+
+    buildAllSupportedPlatforms:
+        name: Build for all supported platforms (pure Python only for now)
+        runs-on: ubuntu-latest
+        needs: [versioning]
+        steps:
+        - name: Checkout Branch
+          uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+
+        - name: Store/Retrieve Build Cache
+          uses: actions/cache@v2
+          with:
+            path: Library
+            key: Library-${{ env.platform }}
+            restore-keys: Library-
+
+        - name: Install poetry
+          run: pipx install poetry
+        - name: Setup Python # Set Python version
+          uses: actions/setup-python@v4
+          with:
+            python-version: ${{ env.python-version }}
+            cache: 'poetry'
+        - name: Install dependencies
+          run: poetry install
+        - name: Set Version
+          run: poetry version ${{ needs.versioning.outputs.version }}
+        - name: Build with poetry   # creates a build in the dist/ folder
+          run: poetry build
+        # - name: Test with pytest
+        #   run: poetry run pytest -v --color=yes
+        - name: Zip Build
+          run: |
+            pushd dist
+            echo "::group::Zip details"
+            zip -r ../../${{ env.platform }}.zip .
+            echo "::endgroup::"
+            popd
+
+        - name: Upload Build to Artifacts
+          uses: actions/upload-artifact@v3
+          with:
+            name: Build-${{ env.platform }}-${{ needs.versioning.outputs.version }}
+            retention-days: 7
+            path: |
+                ./${{ env.platform }}.zip
+
+        - name: Upload Release to GitHub Release
+          # ONLY for official builds
+          if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/work' || contains(github.ref, 'release')
+          uses: actions/upload-release-asset@v1 # TODO: this action is deprecated/unmaintained
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            upload_url: ${{ needs.versioning.outputs.upload_url }}
+            asset_path: ./${{ env.platform }}.zip
+            asset_name: ${{ env.platform }}.zip
+            asset_content_type: application/zip
+
+    publishBuildsToGitHub:
+        name: Publish Complete Release to Github
+        runs-on: ubuntu-latest
+        needs: [versioning, buildAllSupportedPlatforms]
+        # ONLY for official builds, if all steps suceeded
+        if: github.event.inputs.publish_builds == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/work' || contains(github.ref, 'release'))
+        steps:
+        - name: Publish Release to GitHub
+          uses: eregon/publish-release@v1.0.3
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            release_id: ${{ needs.versioning.outputs.release_id }}
+
+    publishBuildsToPyPI:
+        name: Publish Release to PyPI.org
+        runs-on: ubuntu-latest
+        needs: [versioning, buildAllSupportedPlatforms]
+        # ONLY for official builds, if all steps suceeded
+        if: github.event.inputs.publish_builds == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/work' || contains(github.ref, 'release'))
+        environment:
+            name: pypi
+            url: https://pypi.org/p/${{ env.appname }}
+        permissions:
+            id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+        steps:
+            # retrieve your distributions here to the dist/ folder
+            - name: Retrieve build from artifacts
+              uses: actions/download-artifact@v2
+              with:
+                name: Build-${{ env.platform }}-${{ needs.versioning.outputs.version }}
+                path: dist
+
+            - name: Publish package distributions to PyPI
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                print-hash: true
