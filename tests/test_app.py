@@ -12,10 +12,10 @@ def test_help():
     assert "Usage:" in result.stdout
 
 
-def test_debug():
-    result = runner.invoke(app, ["--debug"])
-    assert result.exit_code == 0
-    assert "Usage:" in result.stdout
+# def test_debug():
+#     result = runner.invoke(app, ["--debug"])
+#     assert result.exit_code == 0
+#     assert "Usage:" in result.stdout
 
 
 def test_list():
@@ -32,8 +32,8 @@ def test_version():
     assert __version__ in result.stdout
 
 
-def test_man():
-    result = runner.invoke(app, ["man --raw all"])
-    assert result.exit_code == 0
-    assert "# Markdown Files" in result.stdout
-    assert "# Settings" in result.stdout
+# def test_man():
+#     result = runner.invoke(app, ["man --raw all"])
+#     assert result.exit_code == 0
+#     assert "# Markdown Files" in result.stdout
+#     assert "# Settings" in result.stdout

@@ -45,6 +45,9 @@ jobs:
             version_format: "${major}.${minor}.${patch}rc${increment}"
             # If this is set to true, *every* commit will be treated as a new version.
             bump_each_commit: true
+            # Optional path to check for changes. If any changes are detected in the path the
+            # 'changed' output will true. Enter multiple paths separated by spaces.
+            change_path: "drtodo poetry.lock pyproject.toml"
 
         - name: Create Release
           id: create_release
