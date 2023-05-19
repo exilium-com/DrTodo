@@ -1,15 +1,16 @@
-from typing import Optional
-from pathlib import Path
-import typer
-from rich import print
-from git import Repo
-import rich.markdown
 import re
-from .settings import constants, settings, globals
-from .mdparser import TodoListParser, TaskListTraverser
-from .man_command import manapp
-from .rich_display import console
+from pathlib import Path
+from typing import Optional
 
+import rich.markdown
+import typer
+from git import Repo
+from rich import print
+
+from .man_command import manapp
+from .mdparser import TaskListTraverser, TodoListParser
+from .rich_display import console
+from .settings import constants, globals, settings
 
 app = typer.Typer(
     no_args_is_help=True,

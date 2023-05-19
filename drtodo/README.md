@@ -2,6 +2,11 @@
 
 **DrToDo, MD**: *a straightforward todo list manager for markdown files in git repos.*
 
+TODO items are listed in markdown (*MD*) files using standard markdown syntax understood by most
+environments including Github. You can add and modify these items easily from the command line.
+Markdown files are then just committed to git as you'd normally do and shared with others or as
+part of projects, or just kept locally in your computer.
+
 ## Quick Start
 
 ### installation
@@ -129,7 +134,7 @@ $ DrTodo [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
-* `-s, --settings PATH`: Settings file to use  [default: /Users/bcs/.drtodo]
+* `-s, --settings PATH`: Settings file to use  [default: /Users/USER/.drtodo]
 * `-v, --verbose`: Verbose output
 * `--mdfile PATH`: Markdown file to use for todo list  [default: TEST.md]
 * `-V, --version`: Show version and exit

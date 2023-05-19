@@ -5,6 +5,7 @@ description = "DrTodo, MD: todo list manager using markdown files and git"
 authors = ["exilium <info@exilium.com>"]
 readme = "drtodo/README.md"
 license = "MIT"
+github = "https://github.com/exilium-com/DrTodo"
 
 [tool.poetry.scripts]
 todo = "drtodo.main:app"
