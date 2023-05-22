@@ -42,7 +42,7 @@ jobs:
             # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
             minor_pattern: "[MINOR]"
             # A string to determine the format of the version output
-            version_format: "${major}.${minor}.${patch}rc${increment}"
+            version_format: "${major}.${minor}.${patch}"
             # If this is set to true, *every* commit will be treated as a new version.
             bump_each_commit: true
             # Optional path to check for changes. If any changes are detected in the path the
@@ -156,6 +156,8 @@ jobs:
               with:
                 name: Build-${{ env.platform }}-${{ needs.versioning.outputs.version }}
                 path: dist
+
+            - run: ls -l
 
             - name: Publish package distributions to PyPI
               uses: pypa/gh-action-pypi-publish@release/v1
