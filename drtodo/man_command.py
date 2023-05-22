@@ -5,7 +5,7 @@ from .rich_display import console
 from .settings import constants, get_default_config
 
 
-raw_man_output = False
+man_output = None
 manapp = typer.Typer()
 
 
@@ -137,32 +137,32 @@ See [rich docs](https://rich.readthedocs.io/en/latest/style.html#style) for more
 
 @manapp.command()
 def mdfiles():
-    md = md_mdfiles()
-    if not raw_man_output:
-        md = rich.markdown.Markdown(md)
-    console().print(md)
+    assert man_output
+    man_output(md_mdfiles())
 
 
 @manapp.command()
 def config():
-    md = md_config()
-    if not raw_man_output:
-        md = rich.markdown.Markdown(md)
-    console().print(md)
+    assert man_output
+    man_output(md_config())
 
 
 @manapp.command()
 def all():
-    md = md_mdfiles() + "\n\n" + md_config()
-    if not raw_man_output:
-        md = rich.markdown.Markdown(md)
-    console().print(md)
+    assert man_output
+    man_output(md_mdfiles() + "\n\n" + md_config())
 
+
+def output_as_raw(mdstring: str):
+    console().print(mdstring, markup=False, highlight=False)
+
+def output_pretty(mdstring: str):
+    console().print(rich.markdown.Markdown(mdstring))
 
 # handle global options
 @manapp.callback()
 def main(
     raw: bool = typer.Option(False, "--raw", help="Print the raw markdown man content"),
 ):
-    global raw_man_output
-    raw_man_output = raw
+    global man_output
+    man_output = output_as_raw if raw else output_pretty

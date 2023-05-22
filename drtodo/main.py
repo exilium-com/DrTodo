@@ -15,7 +15,7 @@ from .settings import constants, globals, settings
 app = typer.Typer(
     no_args_is_help=True,
     rich_markup_mode="markdown",
-    help="**{constants.appname}, MD**: *a straightforward todo list manager for markdown files in git repos.*",
+    help=f"**{constants.appname}, MD**: *a straightforward todo list manager for markdown files in git repos.*",
     epilog=f"DrTodo can manage items in a global todo list ({globals.global_todofile_pretty})"
     f" and in a local todo list ({globals.local_todofile_pretty or 'if the current folder is under a git repo'})."
     f" Settings are read from config files and env variables (see *todo man config*).",

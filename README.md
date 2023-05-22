@@ -1,21 +1,30 @@
-# DrToDo
+lli# DrToDo
 
 [![Python Validated](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml/badge.svg)](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml)
 
+This is the internal README with build instructions, source code information etc.
+The [external README with usage and installation instructions](drtodo/README.md) is in the [drtodo folder](drtodo/). That is what is published in PyPI.org.
 
 This is a sample list of TODOs locally tracked in this git repo.
 
-To Do:
+To Do (used for testing):
 - [x] @WarpedPixel this is ~~to be~~ done
 - [ ] to do by 2/3/23 #32
-- [ ] @WarpedPixel Implement add item write. Look at item list token will point to token in the parsed
-  stream and then we add after it (or before).
-
 
 ## Building
 
 This now builds with `poetry`. Install poetry, then run `poetry install` in the root folder. It will install all
 dependencies in a new environment and also the `todo` command. Run `todo --help` to test everything works.
+
+## Building documents
+
+We can build detailed documents mostly programmatically by doing two things, generating all man pages in raw MD format from DrToDo itself, and generating detailed CLI options using [typer CLI](https://typer.tiangolo.com/typer-cli/#generate-docs)
+
+```console
+$ todo man --raw all > manpages.md
+$ poetry run typer drtodo.main utils docs --name DrToDo --output clihelp.md
+$ cat manpages.md clihelp.md > drtodo/README_NEW.md
+```
 
 # Appendix: token format example
 
@@ -118,7 +127,7 @@ tokens =
 ```console
 $ todo --help
 
- Usage: python -m todo [OPTIONS] COMMAND [ARGS]...
+ Usage: todo [OPTIONS] COMMAND [ARGS]...
 
  DrTodo, MD: a straightforward todo list manager for markdown files in git repos.
 
@@ -157,23 +166,3 @@ $ todo --help
 
  ```
 
-
-# Settings
-
-## Global Folder
-- `~/.drtodo`                     global config folder
-- `~/.drtodo/config.toml`         global config
-- `~/.drtodo/config.USER.toml`    user specific config (in case this folder is shared)
-- `~/.drtodo/TODO.md`             default location for todo list (configurable, and there could be more)
-- `~/.drtodo/.git`                git repo for todo list (can be shared)
-
-## Local Folder (under any git repo)
-- `/somefolder/.git`              root folder for nearest .git repo (submodules NOT supported yet)
-- `/somefolder/.drtodo.toml`      local config file for this git repo (safe to commit)
-- `/somefolder/.drtodo.USER.toml` local config file for this git repo (safe to commit, ignored by other users)
-- `/somefolder/TODO.md`           default location for todo list for this git repo (configurable)
-
-## Environment variables
-
-- `DRTODO_MDFILE`                default location for todo list
-- `DRTODO_VERBOSE`               verbose output
