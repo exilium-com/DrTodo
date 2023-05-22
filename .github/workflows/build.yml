@@ -155,9 +155,11 @@ jobs:
               uses: actions/download-artifact@v2
               with:
                 name: Build-${{ env.platform }}-${{ needs.versioning.outputs.version }}
-                path: dist
 
-            - run: ls -l
+            - name: unzip build
+              run: |
+                ls -lR
+                unzip -o ./${{ env.appname }}-${{ env.platform }}.zip -d dist
 
             - name: Publish package distributions to PyPI
               uses: pypa/gh-action-pypi-publish@release/v1
