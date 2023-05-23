@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Testing",
+            "type": "python",
+            "request": "launch",
+            "justMyCode": false,
+            "purpose": [ "debug-test" ]
+        },
+        {
             "name": "DrTodo: list",
             "type": "python",
             "request": "launch",

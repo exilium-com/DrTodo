@@ -99,10 +99,10 @@ def debug():
     """
     List configuration, settings, version and other debug info.
     """
-    console().print(f"{version_string()}")
+    console().print(f"{version_string()}", highlight=False)
 
     d = constants.__dict__ | dict(settings) | globals.__dict__
-    console.print(d)
+    console().print(d)
 
 
 def _add_item(todo_item: dict, todofile_path: Path):
@@ -133,7 +133,7 @@ def add(
     duestr = f" due:{due}" if due else ""
     ownerstr = f" @{owner}" if owner else ""
     prioritystr = f" P{priority}" if priority else ""
-    itemstr = f"{prioritystr}{ownerstr}{duestr} {description}"
+    itemstr = f"{prioritystr}{ownerstr}{duestr} {description}".strip()
     todo_item = TaskListTraverser.create_item(itemstr, index=0, checked=done)
     if not global_todo and globals.local_todofile and globals.local_todofile.exists():
         console().print(f"[header]{globals.local_todofile_pretty}[text]")

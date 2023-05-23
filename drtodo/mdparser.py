@@ -29,7 +29,7 @@ class TaskListTraverser(TokenTraverser):
         creates a dict to represent a task list item from text and an index.
         If token is given, it is used, otherwise a new one is created.
         """
-        id = TaskListTraverser.calc_git_hash(text)
+        id = TaskListTraverser.calc_git_hash(text.strip())  # always ignore leading and trailing whitespace for hash
         token = token or TaskListTraverser.create_item_token(checked, text)
         item = {'checked': checked, 'text': text, 'id': id, 'index': index, 'token': token}
         token['task_item'] = item
