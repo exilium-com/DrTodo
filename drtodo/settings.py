@@ -14,7 +14,7 @@ from git import Repo
 
 from . import __version__
 
-__all__ = ["constants", "settings", "globals", "initialize", "make_pretty_path"]
+__all__ = ["constants", "settings", "globals", "initialize", "make_pretty_path", "Style"]
 
 
 @dataclass(frozen=True)

@@ -9,7 +9,7 @@ repository = "https://github.com/exilium-com/DrTodo"
 keywords = ["utilities", "todo", "markdown"]
 
 [tool.poetry.scripts]
-todo = "drtodo.main:app"
+todo = "drtodo.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.9"

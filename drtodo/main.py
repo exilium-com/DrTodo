@@ -1,16 +1,17 @@
+import inspect
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Callable
 
 import rich.markdown
 import typer
-from git import Repo
+from git.repo import Repo
 from rich import print
 
 from .man_command import manapp
 from .mdparser import TaskListTraverser, TodoListParser
 from .rich_display import console
-from .settings import constants, globals, settings
+from .settings import constants, globals, settings, Style
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -50,6 +51,7 @@ def print_todo_item(item: dict):
     # print a green large checkmark if checked is True or a blank empty box if checked is False
     # and properly render the markdown text with rich
     # trim trailing whitespace too
+    assert isinstance(settings.style, Style)
     checked_bullet = settings.style.checked
     unchecked_bullet = settings.style.unchecked
 
@@ -77,8 +79,9 @@ def print_todo_items(items: list):
         print_todo_item(item)
 
 
-@app.command()
-def list():
+@app.command(name="list")
+@app.command(name="ls", hidden=True)
+def list_command():
     """
     List todo items in the list
     """
@@ -94,8 +97,9 @@ def list():
         print_todo_items(todo.items)
 
 
-@app.command()
-def debug():
+@app.command(name="debug")
+@app.command(name="dbg", hidden=True)
+def debug_command():
     """
     List configuration, settings, version and other debug info.
     """
@@ -113,7 +117,8 @@ def _add_item(todo_item: dict, todofile_path: Path):
         todo.add_item_after(add=todo_item, after=todo.items[-1])
         save_todo_backups(todofile_path, todo)
     else:
-        raise typer.Exit(f"Cannot add item to {todofile_path} because it does not exist")
+        print(f"Cannot add item to {todofile_path} because it does not exist")
+        raise typer.Exit(2)
 
 
 # add [--priority <priority>] [--due <due>] [--owner <owner>] [--done] <item description>
@@ -139,6 +144,7 @@ def add(
         console().print(f"[header]{globals.local_todofile_pretty}[text]")
         _add_item(todo_item, globals.local_todofile)
     else:
+        assert globals.global_todofile
         console().print(f"[header]{globals.global_todofile_pretty}[text]")
         _add_item(todo_item, globals.global_todofile)
     print_todo_item(todo_item)
@@ -282,7 +288,7 @@ panel_FILESELECTION = "File Selection Options"
 
 # Typer callback handles global options like --mdfile and --verbose
 @app.callback()
-def main(
+def main_callback(
     settings: Optional[Path] = typer.Option(constants.appdir, "--settings", "-s", help="Settings file to use",
                                             rich_help_panel=panel_GLOBAL),
     verbose: Optional[bool] = typer.Option(False, "--verbose", "-v", help="Verbose output",
@@ -296,5 +302,75 @@ def main(
     ensure_appdir()
 
 
+# this is fairly generic code that can be used to add aliases to any typer app
+# TODO: move this to a separate package and create decorators for it
+# @app.command_alias(name = 'ls') on the command function
+# @typer_aliases(app=app) on the main() function or maybe @app.typer_aliases()
+def typer_aliases(*, app: typer.Typer,
+                  alias_help_formatter: Optional[Callable[[str], str]] = None,
+                  aliases_help_formatter: Optional[Callable[[str, list[str]], str]] = None) -> None:
+    """
+    Initializes typer aliases for all hidden commands and properly sets the help text for them.
+    Parameters:
+        app: the typer app to modify
+        alias_help_formatter: formats a help string for an aliased command like f"Alias of {command name}"
+        aliases_help_formatter: formats a help string for a command with aliases like f"Aliases: {alias1}, {alias2}"
+    """
+
+    def get_command_name(command_info) -> str:
+        # borrowed from Typer.main.get_command_from_info()
+        name = command_info.name or typer.main.get_command_name(command_info.callback.__name__)
+        return name
+
+    def get_command_help(command_info) -> Optional[str]:
+        # borrowed from Typer.main.get_command_from_info()
+        use_help = command_info.help
+        if use_help is None:
+            use_help = inspect.getdoc(command_info.callback)
+        else:
+            use_help = inspect.cleandoc(use_help)
+        return use_help
+
+    def format_alias_help(aliased_name: str) -> str:
+        if app.rich_markup_mode == "markdown":
+            return f"Alias of `{aliased_name}`"
+        elif app.rich_markup_mode == "rich":
+            return f"Alias of [bold]{aliased_name}[/bold]"
+        else:
+            return f"Alias of {aliased_name}"
+
+    def format_aliases_help(base_help: str, aliases: list[str]) -> str:
+        if app.rich_markup_mode == "markdown":
+            return f"{base_help} *[or {', '.join([f'`{alias}`' for alias in aliases])}]*"
+        elif app.rich_markup_mode == "rich":
+            return f"{base_help} [italics][or {', '.join([f'[bold]{alias}[/bold]' for alias in aliases])}][/italics]"
+        else:
+            return f"{base_help} [or {', '.join(aliases)}]"
+
+    alias_help_formatter = alias_help_formatter or format_alias_help
+    aliases_help_formatter = aliases_help_formatter or format_aliases_help
+
+    aliased_commands = set()
+    # for each command that is not hidden, find any hidden command with the same callback
+    for visible_command in [cmd for cmd in app.registered_commands if not cmd.hidden]:
+        for hidden_command in [cmd for cmd in app.registered_commands if cmd.hidden]:
+            if visible_command.callback == hidden_command.callback:
+                if not hidden_command.help:
+                    hidden_command.help = alias_help_formatter(get_command_name(visible_command))
+                setattr(visible_command, 'aliases', getattr(visible_command, 'aliases', []) + [hidden_command])
+                aliased_commands.add(visible_command)
+
+    # adjust help text for aliased commands
+    for cmd in aliased_commands:
+        basehelp = get_command_help(cmd)
+        if basehelp:
+            cmd.help =  aliases_help_formatter(basehelp, [get_command_name(alias) for alias in cmd.aliases])
+
+
+def main(*args, **kwargs):
+    typer_aliases(app=app)
+    app(*args, **kwargs)
+
+
 if __name__ == "__main__":
-    app()
+    main()

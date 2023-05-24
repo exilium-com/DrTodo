@@ -1,2 +1,2 @@
-from .main import app
-app(prog_name="todo")
+from .main import main
+main(prog_name="todo")
