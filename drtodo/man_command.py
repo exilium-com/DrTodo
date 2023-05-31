@@ -172,9 +172,6 @@ def output_pretty(mdstring: str):
 
 # handle global options
 @manapp.callback()
-@manapp.alias_format(alias_help_formatter=lambda command_name: f"Alias of {command_name}",
-                     aliases_help_formatter=lambda base_help, alias_list:
-                        f"{base_help} aliases are {', '.join(alias_list)}")
 def main(
     raw: bool = typer.Option(False, "--raw", help="Print the raw markdown man content"),
 ):

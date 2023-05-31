@@ -97,3 +97,17 @@ def test_add_do_done_remove():
 #     assert result.exit_code == 0
 #     assert "# Markdown Files" in result.stdout
 #     assert "# Settings" in result.stdout
+
+
+# def test_aliases():
+#     result = runner.invoke(app, ["--help"])
+#     assert result.exit_code == 0
+#     assert result.stdout.find("ls") > 0
+
+#     result = runner.invoke(app, ["ls"])
+#     assert result.exit_code == 0
+#     assert "make it useful" in result.stdout
+
+#     result = runner.invoke(app, ["man"])
+#     assert result.exit_code == 0
+#     assert result.stdout.find("dbg") > 0

@@ -10,7 +10,7 @@ class TyperAliases(typer.Typer):
     Adds support for command aliases to typer apps. Just import this instead of typer, everything works as before,
     except that you can now use the `@app.command_alias()` decorator to add aliases to commands.
     Ex:
-    ```python {4,6}
+    ```python
     import typer
     from typer_aliases import Typer  # import this instead or in addition to typer
 
@@ -33,18 +33,34 @@ class TyperAliases(typer.Typer):
     ```
     """
 
-    # simplest and cleanest way to add aliases is to derive from the Typer class, add a new method for the decorator,
-    # and ovrride the __call__ method to initialize the command aliases after all commands are registered.
+    # simplest and cleanest way to add aliases is to derive from the Typer class, add a new method for the
+    # alias decorator, and ovrride the method to initialize the command aliases after all commands are registered.
 
-    def _init_typer_aliases(self, *,
-                    alias_help_formatter: Optional[Callable[[str], str]] = None,
-                    aliases_help_formatter: Optional[Callable[[str, list[str]], str]] = None) -> None:
+
+    _alias_help_formatter: Optional[Callable[[str], str]] = None
+    """Formats a help string for an aliased command. Ex:
+    ```python
+    lambda command_name: f"Alias of {command_name}"
+    ```"""
+    _aliases_help_formatter: Optional[Callable[[str, list[str]], str]] = None
+    """Formats a help string for a command with aliases. Ex:
+    ```python
+    return f"{base} aliases are {', '.join(alias_list)}"
+    ```"""
+
+    def __init__(self, *args,
+                 alias_help_formatter: Optional[Callable[[str], str]] = None,
+                 aliases_help_formatter: Optional[Callable[[str, list[str]], str]] = None,
+                 **kwargs):
+        self._alias_help_formatter=alias_help_formatter
+        self._aliases_help_formatter=aliases_help_formatter
+        super().__init__(*args, **kwargs)
+
+    def _init_typer_aliases(self,
+                            alias_help_formatter: Optional[Callable[[str], str]] = None,
+                            aliases_help_formatter: Optional[Callable[[str, list[str]], str]] = None):
         """
         Initializes typer aliases for all hidden commands and properly sets the help text for them.
-        Parameters:
-            app: the typer app to modify
-            alias_help_formatter: formats a help string for an aliased command like f"Alias of {command name}"
-            aliases_help_formatter: formats a help string for a command with aliases like f"Aliases: {alias1}, {alias2}"
         """
 
         def get_command_name(command_info) -> str:
@@ -77,53 +93,64 @@ class TyperAliases(typer.Typer):
             else:
                 return f"{base_help} [or {', '.join(aliases)}]"
 
-        alias_help_formatter = alias_help_formatter or format_alias_help
-        aliases_help_formatter = aliases_help_formatter or format_aliases_help
+        def adjust_commands_help(command_list, alias_help_formatter, aliases_help_formatter):
+            aliased_commands = set()
+            # for each command that is not hidden, find any hidden command with the same callback
+            for visible_command in [cmd for cmd in command_list if not cmd.hidden]:
+                for hidden_command in [cmd for cmd in command_list if cmd.hidden]:
+                    if visible_command.callback == hidden_command.callback:
+                        if not hidden_command.help:
+                            hidden_command.help = alias_help_formatter(get_command_name(visible_command))
+                        setattr(visible_command, 'aliases', getattr(visible_command, 'aliases', []) + [hidden_command])
+                        aliased_commands.add(visible_command)
 
-        aliased_commands = set()
-        # for each command that is not hidden, find any hidden command with the same callback
-        for visible_command in [cmd for cmd in self.registered_commands if not cmd.hidden]:
-            for hidden_command in [cmd for cmd in self.registered_commands if cmd.hidden]:
-                if visible_command.callback == hidden_command.callback:
-                    if not hidden_command.help:
-                        hidden_command.help = alias_help_formatter(get_command_name(visible_command))
-                    setattr(visible_command, 'aliases', getattr(visible_command, 'aliases', []) + [hidden_command])
-                    aliased_commands.add(visible_command)
+            # adjust help text for aliased commands
+            for cmd in aliased_commands:
+                basehelp = get_command_help(cmd)
+                if basehelp:
+                    cmd.help =  aliases_help_formatter(basehelp, [get_command_name(alias) for alias in cmd.aliases])
 
-        # adjust help text for aliased commands
-        for cmd in aliased_commands:
-            basehelp = get_command_help(cmd)
-            if basehelp:
-                cmd.help =  aliases_help_formatter(basehelp, [get_command_name(alias) for alias in cmd.aliases])
+        # formatters can be set: 1. as parameters to this method, 2. as parameters at class __init__, 3. left to the defaults
+        alias_help_formatter = alias_help_formatter or self._alias_help_formatter or format_alias_help
+        aliases_help_formatter = aliases_help_formatter or self._aliases_help_formatter or format_aliases_help
 
-    # using decorator syntax ensures these methods are only done at app initialization time
-    def alias_format(self,
-                     alias_help_formatter: Optional[Callable[[str], str]] = None,
-                     aliases_help_formatter: Optional[Callable[[str, list[str]], str]] = None):
-        """
-        Use as decorator on a typer app to customize how help text for aliases is formatted.
-        Parameters:
-            alias_help_formatter(command_name): formats a help string for an aliased
-                command. Ex: `return f"This is an alias of {command_name}"`
-            aliases_help_formatter(base_help, alias_list): formats a help string for a command with aliases
-                Ex: `return f"{base} aliases are {', '.join(alias_list)}"
-        """
-        self.alias_help_formatter=alias_help_formatter
-        self.aliases_help_formatter=aliases_help_formatter
+        # first adjust help text for all registered commands
+        adjust_commands_help(self.registered_commands, alias_help_formatter, aliases_help_formatter)
+        # then adjust help text for all subcommands (registered groups)
+        for group in self.registered_groups:
+            assert group.typer_instance is not None
+            if isinstance(group.typer_instance, TyperAliases):
+                # NOTE: we recurse here to handle TyperAliases sub-subcommands. We leave any Typer sub-subcommands alone.
+                group.typer_instance._init_typer_aliases(alias_help_formatter, aliases_help_formatter)
 
-        def identity (func):
-            @wraps(func)
-            def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
-            return wrapper
-        return identity
+    # # using decorator syntax ensures these methods are only done at app initialization time
+    # def alias_format(self):
+    #     """
+    #     Use as decorator on a typer app to customize how help text for aliases is formatted.
+    #     Parameters:
+    #         alias_help_formatter(command_name): formats a help string for an aliased
+    #             command. Ex: `return f"This is an alias of {command_name}"`
+    #         aliases_help_formatter(base_help, alias_list): formats a help string for a command with aliases
+    #             Ex: `return f"{base} aliases are {', '.join(alias_list)}"
+    #     """
+    #     self.alias_help_formatter=alias_help_formatter
+    #     self.aliases_help_formatter=aliases_help_formatter
+
+    #     def identity (func):
+    #         @wraps(func)
+    #         def wrapper(*args, **kwargs):
+    #             return func(*args, **kwargs)
+    #         return wrapper
+    #     return identity
 
 
     def command_alias(self, name: str, *args, **kwargs):
         """
-        Use as decorator on a typer command to add aliases for this command. Combine with the regular `@app.command()`.
+        Use as decorator on a typer command to add aliases for this command.
+        Suppports the same parameters as command(), e.g., help, deprecate, etc. but none are usually needed.
+        Combine with the regular `@app.command()` like this:
         ```python
-        @app.command()
+        @app.command(help="List files in a folder")
         @app.command_alias(name="ls")
         def list(folder: Path = typer.Argument(Path.cwd(), help="Folder to list")):
             ...
@@ -132,10 +159,7 @@ class TyperAliases(typer.Typer):
         return typer.Typer.command(self, *args, name=name, hidden=True, **kwargs)
 
     def __call__(self, *args, **kwargs):
-        # initialize typer aliases
-        self._init_typer_aliases(alias_help_formatter=getattr(self, 'alias_help_formatter', None),
-                                 aliases_help_formatter=getattr(self, 'aliases_help_formatter', None)
-        )
+        self._init_typer_aliases()
         # call the base class __call__ method
         super().__call__(*args, **kwargs)
         return self
