@@ -1,10 +1,10 @@
-import inspect
 import re
 from pathlib import Path
-from typing import Optional, Callable
+from typing import Optional
 
 import rich.markdown
 import typer
+from typer_aliases import Typer
 from git.repo import Repo
 from rich import print
 
@@ -15,107 +15,7 @@ from .settings import constants, globals, settings, Style
 
 
 
-# this is fairly generic code that can be used to add aliases to any typer app
-# TODO: move this to a separate package and create decorators for it
-# @app.command_alias(name = 'ls') on the command function
-# @typer_aliases(app=app) on the main() function or maybe @app.typer_aliases()
-def typer_aliases(app: typer.Typer, *,
-                  alias_help_formatter: Optional[Callable[[str], str]] = None,
-                  aliases_help_formatter: Optional[Callable[[str, list[str]], str]] = None) -> None:
-    """
-    Initializes typer aliases for all hidden commands and properly sets the help text for them.
-    Parameters:
-        app: the typer app to modify
-        alias_help_formatter: formats a help string for an aliased command like f"Alias of {command name}"
-        aliases_help_formatter: formats a help string for a command with aliases like f"Aliases: {alias1}, {alias2}"
-    """
-
-    def get_command_name(command_info) -> str:
-        # borrowed from Typer.main.get_command_from_info()
-        name = command_info.name or typer.main.get_command_name(command_info.callback.__name__)
-        return name
-
-    def get_command_help(command_info) -> Optional[str]:
-        # borrowed from Typer.main.get_command_from_info()
-        use_help = command_info.help
-        if use_help is None:
-            use_help = inspect.getdoc(command_info.callback)
-        else:
-            use_help = inspect.cleandoc(use_help)
-        return use_help
-
-    def format_alias_help(aliased_name: str) -> str:
-        if app.rich_markup_mode == "markdown":
-            return f"Alias of `{aliased_name}`"
-        elif app.rich_markup_mode == "rich":
-            return f"Alias of [bold]{aliased_name}[/bold]"
-        else:
-            return f"Alias of {aliased_name}"
-
-    def format_aliases_help(base_help: str, aliases: list[str]) -> str:
-        if app.rich_markup_mode == "markdown":
-            return f"{base_help} *[or {', '.join([f'`{alias}`' for alias in aliases])}]*"
-        elif app.rich_markup_mode == "rich":
-            return f"{base_help} [italics][or {', '.join([f'[bold]{alias}[/bold]' for alias in aliases])}][/italics]"
-        else:
-            return f"{base_help} [or {', '.join(aliases)}]"
-
-    alias_help_formatter = alias_help_formatter or format_alias_help
-    aliases_help_formatter = aliases_help_formatter or format_aliases_help
-
-    aliased_commands = set()
-    # for each command that is not hidden, find any hidden command with the same callback
-    for visible_command in [cmd for cmd in app.registered_commands if not cmd.hidden]:
-        for hidden_command in [cmd for cmd in app.registered_commands if cmd.hidden]:
-            if visible_command.callback == hidden_command.callback:
-                if not hidden_command.help:
-                    hidden_command.help = alias_help_formatter(get_command_name(visible_command))
-                setattr(visible_command, 'aliases', getattr(visible_command, 'aliases', []) + [hidden_command])
-                aliased_commands.add(visible_command)
-
-    # adjust help text for aliased commands
-    for cmd in aliased_commands:
-        basehelp = get_command_help(cmd)
-        if basehelp:
-            cmd.help =  aliases_help_formatter(basehelp, [get_command_name(alias) for alias in cmd.aliases])
-
-from functools import wraps
-import types
-
-def typer_aliases_decorator(self,
-                            alias_help_formatter: Optional[Callable[[str], str]] = None,
-                            aliases_help_formatter: Optional[Callable[[str, list[str]], str]] = None):
-    """
-    Use as decorator on a typer app to add support for command aliases such as "ls" for "list".
-    """
-    def decorator (func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-        typer_aliases(self, alias_help_formatter=alias_help_formatter, aliases_help_formatter=aliases_help_formatter)
-        return wrapper
-    return decorator
-
-def typer_command_alias_decorator(self, name: str, *args, **kwargs):
-    """
-    Use as decorator on a typer command to add aliases for this command. Combine with the regular `@app.command()`.
-    ```python
-    @app.command()
-    @app.command_alias(name="ls")
-    def list(folder: Path = typer.Argument(Path.cwd(), help="Folder to list")):
-        ...
-    ```
-    """
-    return typer.Typer.command(self, *args, name=name, hidden=True, **kwargs)
-
-# annotations = getattr(typer.Typer, '__annotations__', None)
-# assert annotations is not None
-typer.Typer.typer_aliases = typer_aliases_decorator
-# annotations['typer_aliases'] = type(typer.Typer.typer_aliases)
-typer.Typer.command_alias = typer_command_alias_decorator
-# annotations['command_alias'] = type(typer.Typer.command_alias)
-
-app = typer.Typer(
+app = Typer(
     no_args_is_help=True,
     rich_markup_mode="markdown",
     help=f"**{constants.appname}, MD**: *a straightforward todo list manager for markdown files in git repos.*",
@@ -123,13 +23,6 @@ app = typer.Typer(
     f" and in a local todo list ({globals.local_todofile_pretty or 'if the current folder is under a git repo'})."
     f" Settings are read from config files and env variables (see *todo man config*).",
     rich_help_panel="Integration")
-
-
-@app.command()
-@app.command_alias(name="foobar")
-def foo():
-    print("foo")
-
 
 
 def version_string() -> str:
@@ -387,7 +280,7 @@ app.add_typer(manapp,
 
 def _version_callback(value: bool) -> None:
     if value:
-        print(version_string())
+        console().print(f"{version_string()}", highlight=False)
         raise typer.Exit()
 
 
@@ -396,7 +289,6 @@ panel_FILESELECTION = "File Selection Options"
 
 
 # Typer callback handles global options like --mdfile and --verbose
-@app.typer_aliases()
 @app.callback()
 def main_callback(
     settings: Optional[Path] = typer.Option(constants.appdir, "--settings", "-s", help="Settings file to use",

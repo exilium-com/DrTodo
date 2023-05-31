@@ -1,12 +1,14 @@
-import typer
 import rich
 import rich.markdown
+import typer
+
+from typer_aliases import Typer
+
 from .rich_display import console
 from .settings import constants, get_default_config
 
-
 man_output = None
-manapp = typer.Typer()
+manapp = Typer()
 
 
 def md_mdfiles():
@@ -136,19 +138,28 @@ See [rich docs](https://rich.readthedocs.io/en/latest/style.html#style) for more
 
 
 @manapp.command()
+@manapp.command_alias(name="md")
 def mdfiles():
+    """
+    How Markdown files are used to manage todo items.
+    """
     assert man_output
     man_output(md_mdfiles())
 
 
 @manapp.command()
+@manapp.command_alias(name="settings")
 def config():
+    """
+    Where settings are stored and how to configure them.
+    """
     assert man_output
     man_output(md_config())
 
 
 @manapp.command()
 def all():
+    """List all manual pages"""
     assert man_output
     man_output(md_mdfiles() + "\n\n" + md_config())
 
@@ -161,6 +172,9 @@ def output_pretty(mdstring: str):
 
 # handle global options
 @manapp.callback()
+@manapp.alias_format(alias_help_formatter=lambda command_name: f"Alias of {command_name}",
+                     aliases_help_formatter=lambda base_help, alias_list:
+                        f"{base_help} aliases are {', '.join(alias_list)}")
 def main(
     raw: bool = typer.Option(False, "--raw", help="Print the raw markdown man content"),
 ):
