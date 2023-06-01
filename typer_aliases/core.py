@@ -3,6 +3,7 @@ from functools import wraps
 from typing import Callable, Optional
 
 import typer
+import typer.testing
 
 
 class TyperAliases(typer.Typer):
@@ -163,3 +164,15 @@ class TyperAliases(typer.Typer):
         # call the base class __call__ method
         super().__call__(*args, **kwargs)
         return self
+
+
+class CliRunner(typer.testing.CliRunner):
+    """
+    A subclass of typer.testing.CliRunner that supports typer aliases.
+    """
+    def invoke(self,
+               app: typer.Typer,
+               *args, **kwargs) -> typer.testing.Result:
+        if isinstance(app, TyperAliases):
+            app._init_typer_aliases()
+        return super().invoke(app, *args, **kwargs)

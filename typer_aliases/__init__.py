@@ -2,4 +2,5 @@
 __version__ = "1.0.0"
 from .core import TyperAliases
 from .core import TyperAliases as Typer
-__all__ = ["Typer", "TyperAliases"]
+from .core import CliRunner
+__all__ = ["Typer", "TyperAliases", "CliRunner"]

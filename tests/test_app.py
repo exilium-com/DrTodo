@@ -1,7 +1,9 @@
-from typer.testing import CliRunner
+# from typer.testing import CliRunner
+from typer_aliases import CliRunner
 
 from drtodo.main import app
 from drtodo import __version__
+
 
 runner = CliRunner()
 
@@ -30,7 +32,6 @@ def test_version():
     assert result.exit_code == 0
     assert "DrTodo" in result.stdout
     assert __version__ in result.stdout
-
 
 
 def test_add_do_done_remove():
@@ -92,22 +93,22 @@ def test_add_do_done_remove():
 
 
 # TODO: this test fails with invalid options but running it without invoke() works fine
-# def test_man():
-#     result = runner.invoke(app, ["man --raw all"])
-#     assert result.exit_code == 0
-#     assert "# Markdown Files" in result.stdout
-#     assert "# Settings" in result.stdout
+def test_man():
+    result = runner.invoke(app, ["man", "--raw", "all"])
+    assert result.exit_code == 0
+    assert "# Markdown Files" in result.stdout
+    assert "# Settings" in result.stdout
 
 
-# def test_aliases():
-#     result = runner.invoke(app, ["--help"])
-#     assert result.exit_code == 0
-#     assert result.stdout.find("ls") > 0
+def test_aliases():
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    assert result.stdout.find("ls") > 0
 
-#     result = runner.invoke(app, ["ls"])
-#     assert result.exit_code == 0
-#     assert "make it useful" in result.stdout
+    result = runner.invoke(app, ["ls"])
+    assert result.exit_code == 0
+    assert "make it useful" in result.stdout
 
-#     result = runner.invoke(app, ["man"])
-#     assert result.exit_code == 0
-#     assert result.stdout.find("dbg") > 0
+    result = runner.invoke(app, ["man"])
+    assert result.exit_code == 0
+    assert result.stdout.find("settings") > 0 # settings is a command alias
