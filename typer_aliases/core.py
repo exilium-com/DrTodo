@@ -1,5 +1,5 @@
 import inspect
-from functools import wraps
+# from functools import wraps
 from typing import Callable, Optional
 
 import typer
@@ -172,7 +172,7 @@ class CliRunner(typer.testing.CliRunner):
     """
     def invoke(self,
                app: typer.Typer,
-               *args, **kwargs) -> typer.testing.Result:
+               *args, **kwargs):
         if isinstance(app, TyperAliases):
             app._init_typer_aliases()
         return super().invoke(app, *args, **kwargs)
