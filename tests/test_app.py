@@ -37,6 +37,13 @@ def test_section():
     assert len(result.stdout.splitlines()) == 3  # 2 items plus header
 
 
+def test_show():
+    result = runner.invoke(app, ['show'])
+    assert result.exit_code == 0
+    assert "ice cream" in result.stdout
+    assert '##' not in result.stdout
+
+
 def test_version():
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0

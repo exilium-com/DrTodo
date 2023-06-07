@@ -1,4 +1,4 @@
-lli# DrToDo
+# DrToDo
 
 [![Python Validated](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml/badge.svg)](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml)
 

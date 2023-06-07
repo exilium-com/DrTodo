@@ -32,6 +32,16 @@
             "justMyCode": false
         },
         {
+            "name": "DrTodo: show",
+            "type": "python",
+            "request": "launch",
+            "module": "drtodo.main",
+            "args": [
+                "show",
+            ],
+            "justMyCode": false
+        },
+        {
             "name": "DrTodo: man",
             "type": "python",
             "request": "launch",

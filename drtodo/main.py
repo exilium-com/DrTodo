@@ -11,8 +11,8 @@ from rich import print
 from .man_command import manapp
 from .mdparser import TaskListTraverser, TodoListParser
 from .rich_display import console
-from .settings import constants, globals, settings, Style
-
+from .settings import constants, globals, settings, Style, make_pretty_path
+from . import util
 
 
 app = Typer(
@@ -270,6 +270,25 @@ def undone(
     Mark one or more todo items as NOT done (undone)
     """
     _done_undone_marker(False, spec, id, index, match, all)
+
+
+@app.command()
+def show(files: Optional[list[Path]] = typer.Argument(None, help="override which markdown files to show"),
+         raw: bool = typer.Option(False, "--raw", help="Print the raw markdown man content")
+        ):
+    """
+    Show markdown file(s) with rich rendering. Defaults to the active, configured files.
+    """
+    md_print = util.print_md_as_raw if raw else util.print_md_pretty
+    if not files:
+        files = [globals.global_todofile, globals.local_todofile]
+    for file in files:
+        if file and file.exists():
+            if len(files) > 1:
+                console().print(f"[header]{make_pretty_path(file)}[text]")
+            with file.open() as f:
+                mdstring = f.read()
+                md_print(mdstring)
 
 
 app.add_typer(manapp,

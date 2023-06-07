@@ -1,13 +1,12 @@
-import rich
-import rich.markdown
 import typer
 from importlib import resources
 from . import man
 
 from typer_aliases import Typer
 
-from .rich_display import console
 from .settings import constants, get_default_config
+from . import util
+
 
 man_output = None
 manapp = Typer()
@@ -49,16 +48,10 @@ def all():
     man_output(md_mdfiles() + "\n\n" + md_config())
 
 
-def output_as_raw(mdstring: str):
-    console().print(mdstring, markup=False, highlight=False)
-
-def output_pretty(mdstring: str):
-    console().print(rich.markdown.Markdown(mdstring))
-
 # handle global options
 @manapp.callback()
 def main(
     raw: bool = typer.Option(False, "--raw", help="Print the raw markdown man content"),
 ):
     global man_output
-    man_output = output_as_raw if raw else output_pretty
+    man_output = util.print_md_as_raw if raw else util.print_md_pretty
