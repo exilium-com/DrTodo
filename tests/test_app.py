@@ -27,6 +27,16 @@ def test_list():
     assert "bug 2" in result.stdout
 
 
+def test_section():
+    result = runner.invoke(app, ['--section', '', 'list'])
+    assert result.exit_code == 0
+    assert len(result.stdout.splitlines()) == 5  # 2 lists with 2 items each plus header
+
+    result = runner.invoke(app, ['--section', '## TODO', 'list'])
+    assert result.exit_code == 0
+    assert len(result.stdout.splitlines()) == 3  # 2 items plus header
+
+
 def test_version():
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0

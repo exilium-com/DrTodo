@@ -1,19 +1,35 @@
-
 import mistune
 from pathlib import Path
 from mistune.renderers.markdown import MarkdownRenderer
 from .mistuneplugin import task_lists
+from typing import Callable, Optional, Union
 
+from .settings import settings
 
 class TokenTraverser:
 
-    def traverse_tokens(self, tokens, search_token_type, found_callback):
+    @staticmethod
+    def tokens_by_type(tokens, search_token_type):
+        """
+        iterator that returns all tokens of type search_token_type.
+        Ex: list(find_tokens(tokens, 'list_item')))
+        """
         for tok in tokens:
             if tok['type'] == search_token_type:
-                found_callback(tok, tokens)
+                yield tok
             if 'children' in tok:
-                self.traverse_tokens(tok['children'], search_token_type, found_callback)
-        return tokens
+                yield from TokenTraverser.find_tokens(tok['children'], search_token_type)
+
+    @staticmethod
+    def traverse_tokens(tokens, callback: Callable[[], bool]):
+        """
+        traverse tokens calling the callback for each token. Return True to continue traversal or False to stop.
+        """
+        for tok in tokens:
+            if not callback(tok, tokens):
+                return
+            if 'children' in tok:
+                TokenTraverser.traverse_tokens(tok['children'], callback)
 
 
 class TaskListTraverser(TokenTraverser):
@@ -43,20 +59,48 @@ class TaskListTraverser(TokenTraverser):
             'attrs': {'checked': checked, 'task_text': text}
         }
 
-    def find_task_lists(self, tokens) -> list:
+    @staticmethod
+    def capture_all_text(tok: dict) -> str:
+        if 'children' in tok:
+            return ''.join([t['raw'] for t in TokenTraverser.tokens_by_type(tok['children'], 'text') if t['raw']])
+        elif 'raw' in tok:
+            return tok['raw']
+        else:
+            return ''
+
+    def find_task_lists(self, tokens: list[dict]) -> list:
         found_items = []
 
-        def match_task_item(tok, parent_tokens):
+        if settings.section:
+            # we will only look for tasks in the section with the given name and optional level
+            # parse the section name and level e.g. "## section name", "section name", etc.
+            s = settings.section.lstrip('#')
+            selected_section = { 'level': len(settings.section) - len(s),
+                                 'name': s.strip().casefold(),
+                                 'current': False }
+        else:
+            selected_section = { 'level': None, 'name': None, 'current': True }
+
+        def match_task_item(tok, parent_tokens) -> bool:
+            if tok['type'] == 'heading':
+                if selected_section['name']:
+                    if (not selected_section['level'] or tok['attrs']['level'] == selected_section['level']) and \
+                        selected_section['name'] == self.capture_all_text(tok).strip().casefold():
+                        selected_section['current'] = True
+                    else:
+                        selected_section['current'] = False
+            if not selected_section['current']:
+                return True
             if tok['type'] != 'list_item':
-                return
+                return True
             if 'attrs' not in tok or 'checked' not in tok['attrs']:
                 # not a task recognized by the mistune plugin
-                return
+                return True
 
             if 'task_item' in tok:
                 # already processed in a previous traversal
                 found_items.append(tok['task_item'])
-                return
+                return True
 
             children = tok['children']
             if children:
@@ -67,7 +111,9 @@ class TaskListTraverser(TokenTraverser):
                 task_item['parent'] = parent_tokens
                 found_items.append(tok['task_item'])
 
-        self.traverse_tokens(tokens, 'list_item', match_task_item)
+            return True
+
+        self.traverse_tokens(tokens, match_task_item)
         return found_items
 
 

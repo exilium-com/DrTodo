@@ -1,5 +1,13 @@
 This is my cool project readme file.
 
+# This is my MD file
+
+Favorite ice cream flavors:
+
+- Vanilla
+- Peanut butter
+- Chocolate
+
 ## TODO
 
 - [x] write a readme

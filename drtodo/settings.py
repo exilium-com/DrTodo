@@ -55,7 +55,9 @@ styles = {
 
 
 class Settings(BaseSettings):
-    mdfile: str = Field("TODO.md", env=constants.env_prefix + "MDFILE")
+    mdfile: str = Field('TODO.md', env=constants.env_prefix + 'MDFILE')
+    section: str = Field('', env=constants.env_prefix + 'SECTION')
+    reverse_order: bool = Field(False, env=constants.env_prefix + 'REVERSE_ORDER')
     verbose: bool = False
     keep_backups: int = 3   # number of backups to keep
     hide_hash: bool = False

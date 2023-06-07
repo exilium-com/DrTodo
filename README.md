@@ -33,6 +33,34 @@ tokens =
 [
     {'type': 'paragraph', 'children': [{'type': 'text', 'raw': 'This is my cool project readme file.'}]},
     {'type': 'blank_line'},
+    {
+        'type': 'heading',
+        'attrs': {'level': 1},
+        'style': 'axt',
+        'children': [{'type': 'text', 'raw': 'This is my MD file'}]
+    },
+    {'type': 'blank_line'},
+    {'type': 'paragraph', 'children': [{'type': 'text', 'raw': 'Favorite ice cream flavors:'}]},
+    {
+        'type': 'list',
+        'children': [
+            {
+                'type': 'list_item',
+                'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': 'Vanilla'}]}]
+            },
+            {
+                'type': 'list_item',
+                'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': 'Peanut butter'}]}]
+            },
+            {
+                'type': 'list_item',
+                'children': [{'type': 'block_text', 'children': [{'type': 'text', 'raw': 'Chocolate'}]}]
+            }
+        ],
+        'tight': True,
+        'bullet': '-',
+        'attrs': {'depth': 0, 'ordered': False}
+    },
     {'type': 'heading', 'attrs': {'level': 2}, 'style': 'axt', 'children': [{'type': 'text', 'raw': 'TODO'}]},
     {'type': 'blank_line'},
     {
@@ -50,7 +78,7 @@ tokens =
                 'task_item': {
                     'checked': True,
                     'text': 'write a readme\n',
-                    'id': '01bd483d62ed72acfc9ca46c93242d5bf45979de',
+                    'id': '56a01da3793c8fe2087a89a299d13bf977509f64',
                     'index': 0,
                     'token': ...,
                     'parent': ...
@@ -68,7 +96,7 @@ tokens =
                 'task_item': {
                     'checked': False,
                     'text': 'make it useful\n',
-                    'id': 'e046af4d0e84752a3bf1dd9dc74d5cb453b2f5b0',
+                    'id': '5869ea7816051ecdb5b9cce2d0fe09b365f9cc5b',
                     'index': 1,
                     'token': ...,
                     'parent': ...
@@ -79,7 +107,12 @@ tokens =
         'bullet': '-',
         'attrs': {'depth': 0, 'ordered': False}
     },
-    {'type': 'heading', 'attrs': {'level': 2}, 'style': 'axt', 'children': [{'type': 'text', 'raw': 'Bugs assigned to me'}]},
+    {
+        'type': 'heading',
+        'attrs': {'level': 2},
+        'style': 'axt',
+        'children': [{'type': 'text', 'raw': 'Bugs assigned to me'}]
+    },
     {'type': 'blank_line'},
     {
         'type': 'list',
@@ -87,13 +120,16 @@ tokens =
             {
                 'type': 'list_item',
                 'children': [
-                    {'type': 'block_text', 'children': [{'type': 'text', 'raw': '['}, {'type': 'text', 'raw': ' ] bug 1'}]}
+                    {
+                        'type': 'block_text',
+                        'children': [{'type': 'text', 'raw': '['}, {'type': 'text', 'raw': ' ] bug 1'}]
+                    }
                 ],
                 'attrs': {'checked': False, 'task_text': 'bug 1\n'},
                 'task_item': {
                     'checked': False,
                     'text': 'bug 1\n',
-                    'id': 'cadea03965ec665c41b0336412d3cbf3624b58db',
+                    'id': '7a787ec3027b21b04a06ae2e3a89afaa05625175',
                     'index': 2,
                     'token': ...,
                     'parent': ...
@@ -102,13 +138,16 @@ tokens =
             {
                 'type': 'list_item',
                 'children': [
-                    {'type': 'block_text', 'children': [{'type': 'text', 'raw': '['}, {'type': 'text', 'raw': ' ] bug 2'}]}
+                    {
+                        'type': 'block_text',
+                        'children': [{'type': 'text', 'raw': '['}, {'type': 'text', 'raw': ' ] bug 2'}]
+                    }
                 ],
                 'attrs': {'checked': False, 'task_text': 'bug 2\n'},
                 'task_item': {
                     'checked': False,
                     'text': 'bug 2\n',
-                    'id': 'a69434ae372dca71a54f3ed1a6ec444723fb42d7',
+                    'id': 'f237ece391025aecbf37c97aebe4ed5f16651577',
                     'index': 3,
                     'token': ...,
                     'parent': ...
@@ -131,38 +170,45 @@ $ todo --help
 
  DrTodo, MD: a straightforward todo list manager for markdown files in git repos.
 
-╭─ Options ─────────────────────────────────────────────────────────────────────────────────────────╮
-│ --install-completion        [bash|zsh|fish|powershell|pwsh]  Install completion for the specified │
-│                                                              shell.                               │
-│                                                              [default: None]                      │
-│ --show-completion           [bash|zsh|fish|powershell|pwsh]  Show completion for the specified    │
-│                                                              shell, to copy it or customize the   │
-│                                                              installation.                        │
-│                                                              [default: None]                      │
-│ --help                                                       Show this message and exit.          │
-╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Global Options ──────────────────────────────────────────────────────────────────────────────────╮
-│ --settings  -s      PATH  Settings file to use                                                    │
-│                           [default: /Users/bcs/.drtodo]                                           │
-│ --verbose   -v            Verbose output                                                          │
-│ --version   -V            Show version and exit                                                   │
-╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ File Selection Options ──────────────────────────────────────────────────────────────────────────╮
-│ --mdfile        PATH  Markdown file to use for todo list                                          │
-│                       [default: TODO.md]                                                          │
-╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ────────────────────────────────────────────────────────────────────────────────────────╮
-│ add     Add a new todo item to the list                                                           │
-│ debug   List configuration, settings, version and other debug info.                               │
-│ done    Mark one or more todo items as done                                                       │
-│ init    Initialize DrTodo folder and files                                                        │
-│ list    List todo items in the list                                                               │
-│ man     Show detailed help and context for settings, file format and heuristics                   │
-│ undone  Mark one or more todo items as NOT done (undone)                                          │
-╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ─────────────────────────────────────────────────────────────────────────────────────╮
+│ --install-completion        [bash|zsh|fish|powershell|pwsh]  Install completion for the       │
+│                                                              specified shell.                 │
+│                                                              [default: None]                  │
+│ --show-completion           [bash|zsh|fish|powershell|pwsh]  Show completion for the          │
+│                                                              specified shell, to copy it or   │
+│                                                              customize the installation.      │
+│                                                              [default: None]                  │
+│ --help                                                       Show this message and exit.      │
+╰───────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Global Options ──────────────────────────────────────────────────────────────────────────────╮
+│ --settings  -s      PATH  Settings file to use                                                │
+│                           [default: ~/.drtodo]                                       │
+│ --verbose   -v            Verbose output                                                      │
+│                           [default: True]                                                     │
+│ --version   -V            Show version and exit                                               │
+╰───────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ File Selection Options ──────────────────────────────────────────────────────────────────────╮
+│ --mdfile                             PATH  Markdown file to use for todo list                 │
+│                                            [default: TEST.md]                                 │
+│ --section                            TEXT  Section name in markdown file to use for todo      │
+│                                            list, with optional heading level, e.g. '## TODO'  │
+│ --reverse-order    --normal-order          Whether todo items should be in reverse order      │
+│                                            (latest first)                                     │
+│                                            [default: normal-order]                            │
+╰───────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ────────────────────────────────────────────────────────────────────────────────────╮
+│ add     Add a new todo item to the list                                                       │
+│ debug   List configuration, settings, version and other debug info. [or dbg]                  │
+│ done    Mark one or more todo items as done                                                   │
+│ init    Initialize DrTodo folder and files                                                    │
+│ list    List todo items in the list [or ls]                                                   │
+│ man     Show detailed help and context for settings, file format and heuristics               │
+│ undone  Mark one or more todo items as NOT done (undone)                                      │
+╰───────────────────────────────────────────────────────────────────────────────────────────────╯
 
- DrTodo can manage items in a global todo list (~/.drtodo/TODO.md) and in a local todo list
- (~/work/src/DrTodo/TODO.md).
+ DrTodo can manage items in a global todo list (~/.drtodo/TEST.md) and in a local todo list
+ (~/work/src/DrTodo/TEST.md). Settings are read from config files and env variables (see todo
+ man config).
 
  ```
 

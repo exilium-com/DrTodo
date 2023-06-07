@@ -291,15 +291,27 @@ panel_FILESELECTION = "File Selection Options"
 # Typer callback handles global options like --mdfile and --verbose
 @app.callback()
 def main_callback(
-    settings: Optional[Path] = typer.Option(constants.appdir, "--settings", "-s", help="Settings file to use",
-                                            rich_help_panel=panel_GLOBAL),
-    verbose: Optional[bool] = typer.Option(False, "--verbose", "-v", help="Verbose output",
+    settings_file: Optional[Path] = typer.Option(constants.appdir, "--settings", "-s", help="Settings file to use",
+                                                 rich_help_panel=panel_GLOBAL),
+    verbose: Optional[bool] = typer.Option(settings.verbose, "--verbose", "-v", help="Verbose output",
                                            rich_help_panel=panel_GLOBAL),
     mdfile: Optional[Path] = typer.Option(settings.mdfile, help="Markdown file to use for todo list",
                                           rich_help_panel=panel_FILESELECTION),
+    section: Optional[str] = typer.Option(settings.section,
+                                          help="Section name in markdown file to use for todo list, with optional "\
+                                          "heading level, e.g. '## TODO'",
+                                          rich_help_panel=panel_FILESELECTION),
+    reverse_order: Optional[bool] = typer.Option(settings.reverse_order, "--reverse-order/--normal-order",
+                                                 help="Whether todo items should be in reverse order (latest first)",
+                                                 rich_help_panel=panel_FILESELECTION),
     version: Optional[bool] = typer.Option(False, "--version", "-V", help="Show version and exit",
                                            callback=_version_callback, is_eager=True, rich_help_panel=panel_GLOBAL),
 ):
+    settings.mdfile = mdfile
+    settings.verbose = verbose
+    settings.section = section
+    settings.reverse_order = reverse_order
+
     # BUG: this is called even when the command is init, so it prints a warning about the appdir not existing
     ensure_appdir()
 
