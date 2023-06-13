@@ -42,6 +42,17 @@
             "justMyCode": false
         },
         {
+            "name": "DrTodo: backup restore",
+            "type": "python",
+            "request": "launch",
+            "module": "drtodo.main",
+            "args": [
+                "backup",
+                "restore"
+            ],
+            "justMyCode": false
+        },
+        {
             "name": "DrTodo: man",
             "type": "python",
             "request": "launch",

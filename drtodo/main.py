@@ -9,6 +9,7 @@ from git.repo import Repo
 from rich import print
 
 from .man_command import manapp
+from . import backup_command
 from .mdparser import TaskListTraverser, TodoListParser
 from .rich_display import console
 from .settings import constants, globals, settings, Style, make_pretty_path
@@ -117,7 +118,7 @@ def _add_item(todo_item: dict, todofile_path: Path):
         todo.parse(todofile_path)
         # TODO: need to append in the MD file in the right place (once we support sections, etc.)
         todo.add_item_after(add=todo_item, after=todo.items[-1])
-        save_todo_backups(todofile_path, todo)
+        backup_command.save_with_backups(todofile_path, todo)
     else:
         print(f"Cannot add item to {todofile_path} because it does not exist")
         raise typer.Exit(2)
@@ -150,32 +151,6 @@ def add(
         console().print(f"[header]{globals.global_todofile_pretty}[text]")
         _add_item(todo_item, globals.global_todofile)
     print_todo_item(todo_item)
-
-
-def save_todo_backups(pathname: Path, todo):
-    def make_backup_path(i: int) -> Path:
-        assert isinstance(i, int) and i > 0
-        # files are hidden and have a '.bak-1' extension for the most recent backup, '.bak-2' for the next, etc.
-        return pathname.with_name(f".{pathname.name.removeprefix('.')}.bak-{i}")
-
-    # first write to a temp file with a '.tmp' extension
-    tmpfilepath = pathname.with_suffix(pathname.suffix + '.tmp')
-    todo.write(tmpfilepath)
-
-    # if file write worked, then we can perform the rename dance
-    n = settings.keep_backups
-    if n > 0:
-        # we keep n backups named as '.bak-1' (for the most recent n-1 backup), '.bak-2', etc.)
-        # first delete the oldest backup
-        make_backup_path(n).unlink(missing_ok=True)
-        for i in range(n - 1, 0, -1):
-            bakfilepath = make_backup_path(i)
-            if bakfilepath.exists():
-                bakfilepath.rename(make_backup_path(i + 1))
-        # rename the original file to '.bak-1'
-        pathname.rename(make_backup_path(1))
-    # finally, rename the temp file to the original filename
-    tmpfilepath.rename(pathname)
 
 
 def _done_undone_marker(done: bool, spec, id, index, match, all):
@@ -227,7 +202,7 @@ def _done_undone_marker(done: bool, spec, id, index, match, all):
             item['checked'] = done
             print_todo_item(item)
         # write back to file
-        save_todo_backups(globals.global_todofile, todo)
+        backup_command.save_with_backups(globals.global_todofile, todo)
 
     if globals.local_todofile and globals.local_todofile.exists():
         console().print(f"[header]{globals.local_todofile}[text] changes:")
@@ -237,7 +212,7 @@ def _done_undone_marker(done: bool, spec, id, index, match, all):
             item['checked'] = done
             print_todo_item(item)
         # write back to file
-        save_todo_backups(globals.local_todofile, todo)
+        backup_command.save_with_backups(globals.local_todofile, todo)
 
 
 # done [--id <id> | --index <index> | --all | --match <regular expression> | <specification>]
@@ -294,6 +269,12 @@ def show(files: Optional[list[Path]] = typer.Argument(None, help="override which
 app.add_typer(manapp,
               name="man",
               help="Show detailed help and context for settings, file format and heuristics",
+              no_args_is_help=True)
+
+
+app.add_typer(backup_command.app,
+              name="backup",
+              help="Manage backups of markdown files",
               no_args_is_help=True)
 
 

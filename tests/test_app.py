@@ -25,6 +25,16 @@ def test_list():
     assert result.exit_code == 0
     assert "make it useful" in result.stdout
     assert "bug 2" in result.stdout
+    # output is of the form "id: hash bullet make it useful"
+    # extract id and hash from the output
+    pos = result.stdout.find('make it useful')
+    assert pos > 0
+    colon = result.stdout[:pos].rfind(':')
+    assert colon > 0 and result.stdout[colon] == ':'
+    hash = result.stdout[colon + 2: colon + 9].strip()
+    id = result.stdout[colon-3:colon].strip()
+
+    # TODO: list using various arguments to show subsets of items, check hash and id
 
 
 def test_section():
@@ -51,7 +61,42 @@ def test_version():
     assert __version__ in result.stdout
 
 
-def test_add_do_done_remove():
+def test_add_remove():
+    result = runner.invoke(app, ["add", "testing added item"])
+    # output is of the form "id: hash bullet testing added item"
+    assert result.exit_code == 0
+    assert "testing added item" in result.stdout
+    # extract id and hash from the output
+    colon = result.stdout.find(":")
+    assert colon > 0
+    hash = result.stdout[colon + 2: colon + 9].strip()
+    id = result.stdout[colon-3:colon].strip()
+
+    result = runner.invoke(app, ["list"])
+    # output is the same form but with many lines now, so we need to find the line with the hash
+    assert result.exit_code == 0
+    assert "testing added item" in result.stdout
+    assert hash in result.stdout
+    assert id in result.stdout
+
+    # TODO: this command does not exist yet
+    # # now delete the item
+    # result = runner.invoke(app, ["remove", id])
+
+    # # ensure that the item is gone
+    # result = runner.invoke(app, ["list"])
+    # assert result.exit_code == 0
+    # assert "testing added item" not in result.stdout
+    # assert hash not in result.stdout
+    # # id may be reused so we can't check for it
+
+    # TODO: instead we restore the backup
+    result = runner.invoke(app, ["backup", "--force", "restore"])
+    assert result.exit_code == 0
+    assert "restored:" in result.stdout
+
+
+def test_do_done():
     result = runner.invoke(app, ["add", "testing added item"])
     # output is of the form "id: hash bullet testing added item"
     assert result.exit_code == 0
@@ -108,8 +153,12 @@ def test_add_do_done_remove():
     # assert hash not in result.stdout
     # # id may be reused so we can't check for it
 
+    # instead we restore the backup
+    result = runner.invoke(app, ["backup", "--force", "restore"])
+    assert result.exit_code == 0
+    assert "restored:" in result.stdout
 
-# TODO: this test fails with invalid options but running it without invoke() works fine
+
 def test_man():
     result = runner.invoke(app, ["man", "--raw", "all"])
     assert result.exit_code == 0
