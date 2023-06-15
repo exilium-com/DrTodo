@@ -72,6 +72,7 @@ def test_list():
 def test_section():
     result = runner.invoke(app, ['--section', '', 'list'])
     assert result.exit_code == 0
+    print(result.stdout.splitlines())
     assert len(result.stdout.splitlines()) == 5  # 2 lists with 2 items each plus header
 
     result = runner.invoke(app, ['--section', '## TODO', 'list'])
