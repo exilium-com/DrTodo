@@ -2,10 +2,8 @@ from rich.console import Console
 from rich.theme import Theme
 from .settings import settings
 
-# TODO: https://github.com/exilium-com/DrTodo/issues/1 - make this configurable
-
 _console = None
-
+_error_console = None
 
 def console():
     global _console
@@ -20,3 +18,10 @@ def console():
         })
         _console = Console(theme=custom_theme)
     return _console
+
+
+def error_console():
+    global _error_console
+    if not _error_console:
+        _error_console = Console(stderr=True, style="red")
+    return _error_console

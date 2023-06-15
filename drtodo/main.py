@@ -1,19 +1,16 @@
-import re
-from functools import partial
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 import rich.markdown
 import typer
 from git.repo import Repo
-from rich import print
 
 from typer_aliases import Typer
 
 from . import backup_command, util
 from .man_command import manapp
 from .mdparser import TaskListTraverser, TodoListParser
-from .rich_display import console
+from .rich_display import console, error_console
 from .settings import Style, constants, globals, make_pretty_path, settings
 from . import taskitems
 
@@ -35,7 +32,7 @@ def version_string() -> str:
 def ensure_appdir(may_create: bool = False) -> None:
     if not constants.appdir.exists():
         if not may_create:
-            print(f"DrTodo folder {constants.appdir} does not exist. Use [bold]todo init[/bold] to create it.")
+            error_console().print(f"DrTodo folder {constants.appdir} does not exist. Use [bold]todo init[/bold] to create it.")
         else:
             constants.appdir.mkdir(parents=False, exist_ok=False)
             assert globals.global_todofile and not globals.global_todofile.exists()
@@ -129,7 +126,7 @@ def _add_item(todo_item: dict, todofile_path: Path):
         todo.add_item_after(add=todo_item, after=todo.items[-1])
         backup_command.save_with_backups(todofile_path, todo)
     else:
-        print(f"Cannot add item to {todofile_path} because it does not exist")
+        error_console().print(f"Cannot add item to {todofile_path} because it does not exist")
         raise typer.Exit(2)
 
 
