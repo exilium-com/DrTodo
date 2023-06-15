@@ -4,6 +4,8 @@ from typer_aliases import CliRunner
 from drtodo.main import app
 from drtodo import __version__
 
+import pytest
+
 
 runner = CliRunner()
 
@@ -32,9 +34,39 @@ def test_list():
     colon = result.stdout[:pos].rfind(':')
     assert colon > 0 and result.stdout[colon] == ':'
     hash = result.stdout[colon + 2: colon + 9].strip()
-    id = result.stdout[colon-3:colon].strip()
+    index = result.stdout[colon-3:colon].strip()
 
-    # TODO: list using various arguments to show subsets of items, check hash and id
+    # list using various arguments to show subsets of items, check hash and id
+    result = runner.invoke(app, ["list", index])
+    assert result.exit_code == 0
+    assert "make it useful" in result.stdout
+    assert "bug" not in result.stdout
+
+    result = runner.invoke(app, ["list", hash])
+    assert result.exit_code == 0
+    assert "make it useful" in result.stdout
+    assert "bug" not in result.stdout
+
+    result = runner.invoke(app, ["list", "useful"])
+    assert result.exit_code == 0
+    assert "make it useful" in result.stdout
+    assert "bug" not in result.stdout
+
+    result = runner.invoke(app, ["list", "--id", hash])
+    assert result.exit_code == 0
+    assert "make it useful" in result.stdout
+    assert "bug" not in result.stdout
+
+    result = runner.invoke(app, ["list", "--range", f"{index}::1000"])
+    assert result.exit_code == 0
+    assert "make it useful" in result.stdout
+    assert "bug" not in result.stdout
+
+    result = runner.invoke(app, ["list", "2:4"])
+    assert result.exit_code == 0
+    assert "useful" not in result.stdout
+    assert "bug 1" in result.stdout
+    assert "bug 2" in result.stdout
 
 
 def test_section():
@@ -96,6 +128,7 @@ def test_add_remove():
     assert "restored:" in result.stdout
 
 
+@pytest.mark.skip('side effects, needs a way to rollback changes')
 def test_do_done():
     result = runner.invoke(app, ["add", "testing added item"])
     # output is of the form "id: hash bullet testing added item"

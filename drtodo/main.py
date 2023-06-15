@@ -1,19 +1,21 @@
 import re
+from functools import partial
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 import rich.markdown
 import typer
-from typer_aliases import Typer
 from git.repo import Repo
 from rich import print
 
+from typer_aliases import Typer
+
+from . import backup_command, util
 from .man_command import manapp
-from . import backup_command
 from .mdparser import TaskListTraverser, TodoListParser
 from .rich_display import console
-from .settings import constants, globals, settings, Style, make_pretty_path
-from . import util
+from .settings import Style, constants, globals, make_pretty_path, settings
+from . import taskitems
 
 
 app = Typer(
@@ -77,14 +79,16 @@ def print_todo_item(item: dict):
     console().print(index_part + hash_part + checkmark_part, mdtext_part, end='')
 
 
-def print_todo_items(items: list):
-    for item in items:
-        print_todo_item(item)
-
-
 @app.command(name="list")
 @app.command(name="ls", hidden=True)
-def list_command():
+def list_command(
+    spec: str = typer.Argument(None, help="ID, index, range or regular expression to match item text"),
+    id: str = typer.Option(None, "--id", "-i", help="ID of the item to list"),
+    index: int = typer.Option(None, "--index", "-n", help="Index of the item to list"),
+    range: str = typer.Option(None, "--range", "-r", help="Range of item indices to list, e.g, 2:5, 2:, :5"),
+    match: str = typer.Option(None, "--match", "-m", help="Regular expression to match item text"),
+    # TODO: add more filter options, done/undone, priority, due, owner, etc.
+):
     """
     List todo items in the list
     """
@@ -92,12 +96,17 @@ def list_command():
         console().print(f"[header]{globals.global_todofile_pretty}[text]")
         todo = TodoListParser()
         todo.parse(globals.global_todofile)
-        print_todo_items(todo.items)
+        for item in taskitems.task_iterator(todo.items, omit_means_all=True,
+                                            spec=spec, id=id, index=index, range=range, match=match):
+            print_todo_item(item)
+
     if globals.local_todofile and globals.local_todofile.exists():
         console().print(f"[header]{globals.local_todofile_pretty}[text]")
         todo = TodoListParser()
         todo.parse(globals.local_todofile)
-        print_todo_items(todo.items)
+        for item in taskitems.task_iterator(todo.items, omit_means_all=True,
+                                            spec=spec, id=id, index=index, range=range, match=match):
+            print_todo_item(item)
 
 
 @app.command(name="debug")
@@ -152,53 +161,20 @@ def add(
         _add_item(todo_item, globals.global_todofile)
     print_todo_item(todo_item)
 
-
-def _done_undone_marker(done: bool, spec, id, index, match, all):
+def _done_undone_marker(done: bool, spec, id, index, range, match, all):
     """
     Mark one or more todo items as done or undone.
     """
     # ensure exactly one of spec, id, index, match or all is not None
-    if sum([spec is not None, id is not None, index is not None, match is not None, all]) != 1:
-        # console().print("[error]ERROR:[/error] Exactly one of --id, --index, --match or --all must be provided")
-        raise typer.BadParameter("Exactly one of --id, --index, --match or --all must be provided")
-
-    if spec is not None:
-        # heuristics:
-        # if spec is a small integer, assume it's an index
-        # if spec is a a pure hex string assume it's an ID
-        # otherwise assume it's a regular expression
-        try:
-            index = int(spec)
-            if index >= 1000:
-                raise ValueError
-        except ValueError:
-            if re.match(r'^[0-9a-f]+$', spec):
-                id = spec
-            else:
-                match = spec
-
-    def matching_items_iter(items, id, index, match, all):
-        if all:
-            for item in items:
-                yield item
-        elif id is not None:
-            for item in items:
-                if item['id'].startswith(id):
-                    yield item
-        elif index is not None:
-            for item in items:
-                if item['index'] == index:
-                    yield item
-        elif match is not None:
-            for item in items:
-                if re.search(match, item['text']):
-                    yield item
+    if sum([spec is not None, id is not None, index is not None, range is not None, match is not None, all]) != 1:
+        raise typer.BadParameter("Exactly one of --id, --index, --range, --match or --all must be provided")
 
     if globals.global_todofile and globals.global_todofile.exists():
         console().print(f"[header]{globals.global_todofile}[text] changes:")
         todo = TodoListParser()
         todo.parse(globals.global_todofile)
-        for item in matching_items_iter(todo.items, id, index, match, all):
+        items = taskitems.task_iterator(todo.items, id=id, index=index, range=range, match=match) if not all else todo.items
+        for item in items:
             item['checked'] = done
             print_todo_item(item)
         # write back to file
@@ -208,7 +184,8 @@ def _done_undone_marker(done: bool, spec, id, index, match, all):
         console().print(f"[header]{globals.local_todofile}[text] changes:")
         todo = TodoListParser()
         todo.parse(globals.local_todofile)
-        for item in matching_items_iter(todo.items, id, index, match, all):
+        items = taskitems.task_iterator(todo.items, id=id, index=index, range=range, match=match) if not all else todo.items
+        for item in items:
             item['checked'] = done
             print_todo_item(item)
         # write back to file
@@ -219,32 +196,34 @@ def _done_undone_marker(done: bool, spec, id, index, match, all):
 # (exactly one option must be provided)
 @app.command()
 def done(
-    spec: str = typer.Argument(None, help="ID, index or regular expression to match item text"),
-    id: str = typer.Option(None, "--id", "-i", help="ID of the item to mark as done"),
-    index: int = typer.Option(None, "--index", "-n", help="Index of the item to mark as done"),
+    spec: str = typer.Argument(None, help="ID, index, range or regular expression to match item text"),
+    id: str = typer.Option(None, "--id", "-i", help="ID of the item to mark"),
+    index: int = typer.Option(None, "--index", "-n", help="Index of the item to mark"),
+    range: str = typer.Option(None, "--range", "-r", help="Range of item indices to mark, e.g, 2:5, 2:, :5"),
     match: str = typer.Option(None, "--match", "-m", help="Regular expression to match item text"),
-    all: bool = typer.Option(False, "--all", "-a", help="Mark all items as done"),
+    all: bool = typer.Option(False, "--all", "-a", help="Mark all items"),
 ):
     """
     Mark one or more todo items as done
     """
-    _done_undone_marker(True, spec, id, index, match, all)
+    _done_undone_marker(True, spec, id, index, range, match, all)
 
 
 # undone [--id <id> | --index <index> | --all | --match <regular expression> | <specification>]
 # (exactly one option must be provided)
 @app.command()
 def undone(
-    spec: str = typer.Argument(None, help="ID, index or regular expression to match item text"),
-    id: str = typer.Option(None, "--id", "-i", help="ID of the item to mark as done"),
-    index: int = typer.Option(None, "--index", "-n", help="Index of the item to mark as done"),
+    spec: str = typer.Argument(None, help="ID, index, range or regular expression to match item text"),
+    id: str = typer.Option(None, "--id", "-i", help="ID of the item to mark"),
+    index: int = typer.Option(None, "--index", "-n", help="Index of the item to mark"),
+    range: str = typer.Option(None, "--range", "-r", help="Range of item indices to mark,e.g, 2:5, 2:, :5"),
     match: str = typer.Option(None, "--match", "-m", help="Regular expression to match item text"),
-    all: bool = typer.Option(False, "--all", "-a", help="Mark all items as done"),
+    all: bool = typer.Option(False, "--all", "-a", help="Mark all items"),
 ):
     """
     Mark one or more todo items as NOT done (undone)
     """
-    _done_undone_marker(False, spec, id, index, match, all)
+    _done_undone_marker(False, spec, id, index, range, match, all)
 
 
 @app.command()
