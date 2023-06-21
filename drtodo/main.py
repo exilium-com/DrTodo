@@ -267,8 +267,8 @@ panel_FILESELECTION = "File Selection Options"
 # Typer callback handles global options like --mdfile and --verbose
 @app.callback()
 def main_callback(
-    settings_file: Optional[Path] = typer.Option(constants.appdir, "--settings", "-s", help="Settings file to use",
-                                                 rich_help_panel=panel_GLOBAL),
+    # settings_file: Optional[Path] = typer.Option(constants.appdir, "--settings", "-S", help="Settings file to use",
+    #                                              rich_help_panel=panel_GLOBAL),
     verbose: Optional[bool] = typer.Option(settings.verbose, "--verbose", "-v", help="Verbose output",
                                            rich_help_panel=panel_GLOBAL),
     mdfile: Optional[Path] = typer.Option(settings.mdfile, help="Markdown file to use for todo list",
@@ -290,6 +290,7 @@ def main_callback(
 
     # BUG: this is called even when the command is init, so it prints a warning about the appdir not existing
     ensure_appdir()
+
 
 def main(*args, **kwargs):
     # typer_aliases(app=app)

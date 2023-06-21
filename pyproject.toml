@@ -11,6 +11,10 @@ keywords = ["utilities", "todo", "markdown"]
 [tool.poetry.scripts]
 todo = "drtodo.main:main"
 
+[tool.poetry.build]
+# generate-setup-file = false
+script = "build.py"
+
 [tool.poetry.dependencies]
 python = "^3.9"
 typer = "*"
@@ -25,6 +29,7 @@ typing-extensions = {version = "^4.5.0", python = "<3.11"}
 black = "*"
 ruff = "*"
 pytest = "^6.0.0"
+typer-cli = "^0.0.13"
 
 [tool.ruff]
 line-length = 125

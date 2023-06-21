@@ -12,6 +12,16 @@
             "purpose": [ "debug-test" ]
         },
         {
+            "name": "DrTodo: version",
+            "type": "python",
+            "request": "launch",
+            "module": "drtodo.main",
+            "args": [
+                "--version",
+            ],
+            "justMyCode": false
+        },
+        {
             "name": "DrTodo: help",
             "type": "python",
             "request": "launch",

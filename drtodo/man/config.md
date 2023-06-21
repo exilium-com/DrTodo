@@ -73,6 +73,8 @@ See [rich docs](https://rich.readthedocs.io/en/latest/style.html#style) for more
 
 - `DRTODO_MDFILE`                default location for todo list
 - `DRTODO_VERBOSE`               verbose output
+- `DRTODO_IGNORE_CONFIG`         ignore all config files and use defaults
+- `DRTODO_KEEP_BACKUPS`          number of old markdown file backups to keep
 
 ## Sample config file (TOML)
 ```toml

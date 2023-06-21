@@ -12,6 +12,10 @@ man_output = None
 manapp = Typer()
 
 
+def md_intro():
+    with open(resources.files(man) / 'intro.md', 'r') as f:
+        return f.read().format(**constants.__dict__)
+
 def md_mdfiles():
     with open(resources.files(man) / 'mdfiles.md', 'r') as f:
         return f.read().format(**constants.__dict__)
@@ -45,7 +49,7 @@ def config():
 def all():
     """List all manual pages"""
     assert man_output
-    man_output(md_mdfiles() + "\n\n" + md_config())
+    man_output(md_intro() + "\n\n" + md_mdfiles() + "\n\n" + md_config())
 
 
 # handle global options

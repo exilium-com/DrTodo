@@ -18,13 +18,13 @@ dependencies in a new environment and also the `todo` command. Run `todo --help`
 
 ## Building documents
 
-We can build detailed documents mostly programmatically by doing two things, generating all man pages in raw MD format from DrToDo itself, and generating detailed CLI options using [typer CLI](https://typer.tiangolo.com/typer-cli/#generate-docs)
+Documents are built programmatically by doing two things, generating all man pages in raw MD format from DrToDo itself,
+and generating detailed CLI options using [typer CLI](https://typer.tiangolo.com/typer-cli/#generate-docs).
 
-```console
-$ todo man --raw all > manpages.md
-$ poetry run typer drtodo.main utils docs --name DrToDo --output clihelp.md
-$ cat manpages.md clihelp.md > drtodo/README_NEW.md
-```
+This is automatically done by [build.py](build.py) and the result is the [drtodo/README.md](drtodo/README.md) file. This is
+published to PyPI.org as the main README.
+
+All documentation is available in the script itself with `todo man` or using the `--help` option with various commands.
 
 # Appendix: token format example
 

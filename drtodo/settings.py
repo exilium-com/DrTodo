@@ -1,3 +1,4 @@
+import os
 import getpass
 from dataclasses import dataclass
 from pathlib import Path
@@ -148,8 +149,11 @@ def initialize():
     global settings
     config_dict: dict[str, Any] = {}
 
-    # load either config.toml or config.{username}.toml
-    config_dict |= load_config(constants.appdir, Path("config.toml"))
+    load_config = os.environ.get(constants.env_prefix + 'IGNORE_CONFIG', 'false').lower() != 'true'
+
+    if load_config:
+        # load either config.toml or config.{username}.toml
+        config_dict |= load_config(constants.appdir, Path("config.toml"))
 
     # find root of git repo
     try:
@@ -161,7 +165,7 @@ def initialize():
         # print("not under a git repo")
         pass
 
-    if globals.gitroot:
+    if load_config and globals.gitroot:
         config_dict |= load_config(globals.gitroot, Path(".drtodo.toml"))
 
     settings = Settings(**config_dict)
