@@ -92,7 +92,7 @@ jobs:
         - name: Install dependencies
           run: |
             poetry self add 'poethepoet[poetry_plugin]'
-            poetry install
+            poetry install --no-root
         - name: Set Version
           run: poetry version ${{ needs.versioning.outputs.version }}
         - name: Build with poetry   # creates a build in the dist/ folder

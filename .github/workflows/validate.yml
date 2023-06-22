@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry self add 'poethepoet[poetry_plugin]'
-          poetry install
+          poetry install --no-root
       - name: Lint with Ruff
         run: poetry run ruff --format=github . # --target-version=py39
         continue-on-error: true
