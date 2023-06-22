@@ -16,6 +16,8 @@ To Do (used for testing):
 This now builds with `poetry`. Install poetry, then run `poetry install` in the root folder. It will install all
 dependencies in a new environment and also the `todo` command. Run `todo --help` to test everything works.
 
+We now use [poethepoet](https://poethepoet.natn.io) to run scripts and tasks in the poetry environment and for builds.
+
 ## Building documents
 
 Documents are built programmatically by doing two things, generating all man pages in raw MD format from DrToDo itself,
@@ -25,6 +27,9 @@ This is automatically done by [build.py](build.py) and the result is the [drtodo
 published to PyPI.org as the main README.
 
 All documentation is available in the script itself with `todo man` or using the `--help` option with various commands.
+
+If `poe` is installed as a plugin, `poetry build` will rebuild the documents before building the package. If not, you
+will need to run it manually as `poe pre_build` or `poetry run poe pre_build`.
 
 # Appendix: token format example
 
