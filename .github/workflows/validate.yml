@@ -32,5 +32,6 @@ jobs:
         run: |
           poetry run python build.py
           poetry build
+          poetry install --only-root
       - name: Test with pytest
         run: poetry run pytest -v --color=yes
