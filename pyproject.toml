@@ -33,9 +33,3 @@ line-length = 125
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poe.poetry_hooks]
-pre_build = "pre_build"
-
-[tool.poe.tasks.pre_build]
-script = "build:create_doc_files"

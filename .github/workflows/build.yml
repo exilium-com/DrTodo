@@ -90,13 +90,13 @@ jobs:
             python-version: ${{ env.python-version }}
             cache: 'poetry'
         - name: Install dependencies
-          run: |
-            poetry self add 'poethepoet[poetry_plugin]'
-            poetry install --no-root
+          run: poetry install --no-root
         - name: Set Version
           run: poetry version ${{ needs.versioning.outputs.version }}
         - name: Build with poetry   # creates a build in the dist/ folder
-          run: poetry build
+          run: |
+            poetry run python build.py
+            poetry build
         # - name: Test with pytest
         #   run: poetry run pytest -v --color=yes
         - name: Zip Build
