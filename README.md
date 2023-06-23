@@ -3,7 +3,7 @@
 [![Python Validated](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml/badge.svg)](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml)
 
 This is the internal README with build instructions, source code information etc.
-The [external README with usage and installation instructions](drtodo/README.md) is in the [drtodo folder](drtodo/). That is what is published in PyPI.org.
+The [external README with usage and installation instructions](READMEexample.md) is in the [drtodo folder](drtodo/). That is what is published in PyPI.org.
 
 This is a sample list of TODOs locally tracked in this git repo.
 
