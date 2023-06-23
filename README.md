@@ -16,8 +16,6 @@ To Do (used for testing):
 This now builds with `poetry`. Install poetry, then run `poetry install` in the root folder. It will install all
 dependencies in a new environment and also the `todo` command. Run `todo --help` to test everything works.
 
-We now use [poethepoet](https://poethepoet.natn.io) to run scripts and tasks in the poetry environment and for builds.
-
 ### Installation
 
 Must have [poetry](https://python-poetry.org/docs/#installation) installed in the system.

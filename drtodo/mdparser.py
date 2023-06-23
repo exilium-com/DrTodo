@@ -2,7 +2,7 @@ import mistune
 from pathlib import Path
 from mistune.renderers.markdown import MarkdownRenderer
 from .mistuneplugin import task_lists
-from typing import Callable, Optional, Union
+from typing import Callable
 
 from .settings import settings
 

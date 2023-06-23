@@ -28,7 +28,7 @@ pytest = "^6.0.0"
 typer-cli = "^0.0.13"
 
 [tool.ruff]
-line-length = 125
+line-length = 150
 
 [build-system]
 requires = ["poetry-core"]
