@@ -93,6 +93,21 @@ def test_version():
     assert __version__ in result.stdout
 
 
+def test_remove():
+    result = runner.invoke(app, ["remove", "1"])
+    assert result.exit_code == 0
+    assert "bug" not in result.stdout
+
+    result = runner.invoke(app, ["ls"])
+    assert result.exit_code == 0
+    assert "make it useful" not in result.stdout
+
+    # restore the backup so we can run the tests again
+    result = runner.invoke(app, ["backup", "--force", "restore"])
+    assert result.exit_code == 0
+    assert "restored:" in result.stdout
+
+
 def test_add_remove():
     result = runner.invoke(app, ["add", "testing added item"])
     # output is of the form "id: hash bullet testing added item"
@@ -128,7 +143,6 @@ def test_add_remove():
     assert "restored:" in result.stdout
 
 
-@pytest.mark.skip('side effects, needs a way to rollback changes')
 def test_do_done():
     result = runner.invoke(app, ["add", "testing added item"])
     # output is of the form "id: hash bullet testing added item"
@@ -175,21 +189,16 @@ def test_do_done():
     assert id in result.stdout
     # TODO: validate that the item is marked as done, depends on the output format
 
-    # TODO: this command does not exist yet
-    # # now delete the item
-    # result = runner.invoke(app, ["remove", id])
-
-    # # ensure that the item is gone
-    # result = runner.invoke(app, ["list"])
-    # assert result.exit_code == 0
-    # assert "testing added item" not in result.stdout
-    # assert hash not in result.stdout
-    # # id may be reused so we can't check for it
-
-    # instead we restore the backup
-    result = runner.invoke(app, ["backup", "--force", "restore"])
+    # now delete the item
+    result = runner.invoke(app, ["remove", id])
     assert result.exit_code == 0
-    assert "restored:" in result.stdout
+
+    # ensure that the item is gone
+    result = runner.invoke(app, ["list"])
+    assert result.exit_code == 0
+    assert "testing added item" not in result.stdout
+    assert hash not in result.stdout
+    # id may be reused so we can't check for it
 
 
 def test_man():

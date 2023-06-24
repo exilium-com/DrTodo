@@ -163,4 +163,16 @@ class TodoListParser:
         self._update_md_from_items()
         mdtext = self.markdownparser.render_state(self.state)
         with open(pathname, 'w') as f:
-            f.write(mdtext)
+            f.write(str(mdtext))
+
+    def remove_item(self, item: dict):
+        """Remove the given item from the items and state"""
+        # first find the index of the 'after' token in the parent list. if it fails we don't mess with the state
+        assert item['parent']
+        relative_index = item['parent'].index(item['token'])
+        assert relative_index >= 0
+        self.items.remove(item)
+        del item['parent'][relative_index]
+        # reindex all the items now
+        for i, item in enumerate(self.items):
+            item['index'] = i

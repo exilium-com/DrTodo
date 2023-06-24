@@ -95,6 +95,7 @@ def list():
 
 
 @app.command()
+@app.command_alias(name="rollback")
 def restore():
     """
     Rolls back backup files by one (3 levels of backup are kept by default).

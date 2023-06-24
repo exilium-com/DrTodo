@@ -22,7 +22,7 @@ app = Typer(
     epilog=f"DrTodo can manage items in a global todo list ({globals.global_todofile_pretty})"
     f" and in a local todo list ({globals.local_todofile_pretty or 'if the current folder is under a git repo'})."
     f" Settings are read from config files and env variables (see *todo man config*).",
-    rich_help_panel="Integration")
+)
 
 
 def version_string() -> str:
@@ -97,7 +97,7 @@ def list_command(
             todo.parse(todofile)
             try:
                 items = taskitems.create_iterator(todo.items, omit_means_all=True,
-                                                  spec=spec , id=id, index=index, range=range, match=match)
+                                                  spec=spec, id=id, index=index, range=range, match=match)
             except ValueError as e:
                 error_console().print(f"error: {e}")
                 raise typer.Exit(2)
@@ -155,13 +155,16 @@ def add(
     itemstr = f"{prioritystr}{ownerstr}{duestr} {description}".strip()
     todo_item = TaskListTraverser.create_item(itemstr, index=0, checked=done)
     if not global_todo and globals.local_todofile and globals.local_todofile.exists():
-        console().print(f"[header]{globals.local_todofile_pretty}[text]")
+        if (settings.verbose):
+            console().print(f"[header]{globals.local_todofile_pretty}[text]")
         _add_item(todo_item, globals.local_todofile)
     else:
         assert globals.global_todofile
-        console().print(f"[header]{globals.global_todofile_pretty}[text]")
+        if (settings.verbose):
+            console().print(f"[header]{globals.global_todofile_pretty}[text]")
         _add_item(todo_item, globals.global_todofile)
-    print_todo_item(todo_item)
+    if (settings.verbose):
+        print_todo_item(todo_item)
 
 
 @app.command(name="remove")
@@ -183,7 +186,8 @@ def remove_command(
     def removefromfile(todo_file: Path) -> int:
         count = 0
         if todo_file and todo_file.exists():
-            console().print(f"[header]{make_pretty_path(todo_file)}[text]")
+            if (settings.verbose):
+                console().print(f"[header]{make_pretty_path(todo_file)}[text]")
             todo = TodoListParser()
             todo.parse(todo_file)
             try:
@@ -193,10 +197,23 @@ def remove_command(
                 error_console().print(f"error: {e}")
                 raise typer.Exit(2)
 
-            for item in items:
-                print_todo_item(item)
-                count += 1
-            # backup_command.save_with_backups(todo_file, todo)
+            try:
+                # we gather then commit to remove from list we are iterating over
+                to_remove = []
+                for item in items:
+                    to_remove.append(item)
+
+                count = len(to_remove)
+                while to_remove:
+                    item = to_remove.pop(0)
+                    todo.remove_item(item)
+                    if (settings.verbose):
+                        print_todo_item(item)
+            except Exception as e:
+                error_console().print(f"no items removed: {e}")
+                raise typer.Exit(2)
+            finally:
+                backup_command.save_with_backups(todo_file, todo)
         return count
 
     if not global_todo and globals.local_todofile and globals.local_todofile.exists():
@@ -223,18 +240,21 @@ def _done_undone_marker(done: bool, spec, id, index, range, match, all):
     def doneundonefromfile(todo_file: Optional[Path]) -> int:
         count = 0
         if todo_file and todo_file.exists():
-            console().print(f"[header]{make_pretty_path(todo_file)}[text] changes:")
+            if (settings.verbose):
+                console().print(f"[header]{make_pretty_path(todo_file)}[text] changes:")
             todo = TodoListParser()
             todo.parse(todo_file)
             try:
-                items = taskitems.create_iterator(todo.items, id=id, index=index, range=range, match=match) if not all else todo.items
+                items = taskitems.create_iterator(todo.items, omit_means_all=False,
+                                                  spec=spec, id=id, index=index, range=range, match=match) if not all else todo.items
             except ValueError as e:
                 error_console().print(f"error: {e}")
                 raise typer.Exit(2)
 
             for item in items:
                 item['checked'] = done
-                print_todo_item(item)
+                if (settings.verbose):
+                    print_todo_item(item)
                 count += 1
             # write back to file
             backup_command.save_with_backups(todo_file, todo)
@@ -315,7 +335,6 @@ def _version_callback(value: bool) -> None:
         raise typer.Exit()
 
 
-panel_GLOBAL = "Global Options"
 panel_FILESELECTION = "File Selection Options"
 
 
@@ -324,8 +343,7 @@ panel_FILESELECTION = "File Selection Options"
 def main_callback(
     # settings_file: Optional[Path] = typer.Option(constants.appdir, "--settings", "-S", help="Settings file to use",
     #                                              rich_help_panel=panel_GLOBAL),
-    verbose: bool = typer.Option(settings.verbose, "--verbose", "-v", help="Verbose output",
-                                 rich_help_panel=panel_GLOBAL),
+    verbose: bool = typer.Option(settings.verbose, "--verbose/--quiet", "-v/-q", help="Verbose or quiet output"),
     mdfile: Path = typer.Option(settings.mdfile, help="Markdown file to use for todo list",
                                 rich_help_panel=panel_FILESELECTION),
     section: str = typer.Option(settings.section,
@@ -336,7 +354,7 @@ def main_callback(
                                        help="Whether todo items should be in reverse order (latest first)",
                                        rich_help_panel=panel_FILESELECTION),
     version: bool = typer.Option(False, "--version", "-V", help="Show version and exit",
-                                 callback=_version_callback, is_eager=True, rich_help_panel=panel_GLOBAL),
+                                 callback=_version_callback, is_eager=True),
 ):
     settings.mdfile = str(mdfile)
     settings.verbose = verbose
