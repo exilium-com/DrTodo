@@ -4,9 +4,9 @@
 [![Compatible Python Versions](https://badgen.net/pypi/python/drtodo?icon=pypi)](https://pypi.org/project/drtodo/)
 
 [![Publish](https://github.com/exilium-com/DrTodo/actions/workflows/build.yml/badge.svg)](https://github.com/exilium-com/DrTodo/actions/workflows/build.yml)
-[![Latest Github tag](https://badgen.net/github/tag/exilium-com/DrTodo?icon=github&label=github%20tag)](https://github.com/exilium-com/DrTodo/tags/)
-[![Published Version](https://badgen.net/pypi/v/drtodo?icon=pypi&label=pypi%20tag)](https://pypi.org/project/drtodo/)
-
+[![Latest Github tag](https://img.shields.io/github/tag/exilium-com/DrTodo?logo=github&logoColor=lightgray&label=github%20tag)](https://github.com/exilium-com/DrTodo/tags/)
+[![Published Version](https://img.shields.io/pypi/v/drtodo?logo=pypi&logoColor=lightgray&label=pypi%20tag)](https://pypi.org/project/drtodo/)
+[![Commits since](https://img.shields.io/github/commits-since/exilium-com/drtodo/latest.svg)](https://github.com/exilium-com/DrTodo/commits/main)
 
 This is the internal README with build instructions, source code information etc.
 The [external README with usage and installation instructions](READMEexample.md) is in the [drtodo folder](drtodo/). That is what is published in PyPI.org.
