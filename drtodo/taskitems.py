@@ -13,23 +13,41 @@ def parse_slice(s: str) -> slice:
 
 
 # iterator to traverse tasks that match a spec, id, index or re match (or all)
-def task_iterator(items: list, *,
-                  spec: Optional[Union[int, str]] = None,
-                  id: Optional[int] = None,
-                  index: Optional[int] = None,
-                  range: Optional[str] = None,
-                  match: Optional[str] = None,
-                  done: Optional[bool] = None,
-                  omit_means_all: bool = False
+def create_iterator(items: list, *,
+                    spec: Optional[Union[int, str]] = None,
+                    id: Optional[int] = None,
+                    index: Optional[int] = None,
+                    range: Optional[str] = None,
+                    match: Optional[str] = None,
+                    done: Optional[bool] = None,
+                    omit_means_all: bool = False
 ):
     """
-    iterates through all tasks that match the given criteria:
+    returns an iterable that iterates through all tasks that match the given criteria:
     - spec: a string that can be an index, an ID or a regular expression
     - id: a task ID (partial hexadecimal hash)
     - index: a task index
     - range: a range of task indexes (e.g. 1:3, can use negative indexes from end as well)
     - match: a regular expression to match against the task text
     - done: whether to match only done tasks or only tasks not done
+    use as follows:
+
+    ```python
+    for item in create_iterator(items, spec='1:3'):
+        ...
+    ```
+
+    or
+
+    ```python
+    try:
+        iterator = create_iterator(items, spec='1:3')
+    except ValueError as e:
+        print(e)
+    else:
+        for item in iterator:
+            ...
+    ```
     """
     if spec is not None:
         # heuristics:
@@ -50,7 +68,8 @@ def task_iterator(items: list, *,
                 else:
                     match = spec
 
-    if not omit_means_all and sum(spec is None, id is None, index is None, range is None, match is None, done is None) == 0:
+    if not omit_means_all and sum([spec is not None, id is not None, index is not None,
+                                   range is not None, match is not None, done is not None]) == 0:
         raise ValueError('no task selection criteria given')
 
     if isinstance(range, str):
@@ -60,15 +79,18 @@ def task_iterator(items: list, *,
         import builtins
         range = builtins.range(*range.indices(len(items)))
 
-    for item in items:
-        if done is not None and item['checked'] != done:
-            continue
-        elif id is not None and not item['id'].startswith(id):
-            continue
-        elif index is not None and item['index'] != index:
-            continue
-        elif range is not None and item['index'] not in range:
-            continue
-        elif match is not None and not re.search(match, item['text']):
-            continue
-        yield item
+    def wrapped():
+        for item in items:
+            if done is not None and item['checked'] != done:
+                continue
+            elif id is not None and not item['id'].startswith(id):
+                continue
+            elif index is not None and item['index'] != index:
+                continue
+            elif range is not None and item['index'] not in range:
+                continue
+            elif match is not None and not re.search(match, item['text']):
+                continue
+            yield item
+
+    return wrapped()

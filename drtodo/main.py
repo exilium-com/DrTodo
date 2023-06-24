@@ -77,7 +77,7 @@ def print_todo_item(item: dict):
 
 
 @app.command(name="list")
-@app.command(name="ls", hidden=True)
+@app.command_alias(name="ls")
 def list_command(
     spec: str = typer.Argument(None, help="ID, index, range or regular expression to match item text"),
     id: str = typer.Option(None, "--id", "-i", help="ID of the item to list"),
@@ -89,25 +89,31 @@ def list_command(
     """
     List todo items in the list
     """
+
+    def listfromfile(todofile: Path):
+        if todofile and todofile.exists():
+            console().print(f"[header]{make_pretty_path(todofile)}[text]")
+            todo = TodoListParser()
+            todo.parse(todofile)
+            try:
+                items = taskitems.create_iterator(todo.items, omit_means_all=True,
+                                                  spec=spec , id=id, index=index, range=range, match=match)
+            except ValueError as e:
+                error_console().print(f"error: {e}")
+                raise typer.Exit(2)
+
+            for item in items:
+                print_todo_item(item)
+
     if globals.global_todofile and globals.global_todofile.exists():
-        console().print(f"[header]{globals.global_todofile_pretty}[text]")
-        todo = TodoListParser()
-        todo.parse(globals.global_todofile)
-        for item in taskitems.task_iterator(todo.items, omit_means_all=True,
-                                            spec=spec, id=id, index=index, range=range, match=match):
-            print_todo_item(item)
+        listfromfile(globals.global_todofile)
 
     if globals.local_todofile and globals.local_todofile.exists():
-        console().print(f"[header]{globals.local_todofile_pretty}[text]")
-        todo = TodoListParser()
-        todo.parse(globals.local_todofile)
-        for item in taskitems.task_iterator(todo.items, omit_means_all=True,
-                                            spec=spec, id=id, index=index, range=range, match=match):
-            print_todo_item(item)
+        listfromfile(globals.local_todofile)
 
 
 @app.command(name="debug")
-@app.command(name="dbg", hidden=True)
+@app.command_alias(name="dbg")
 def debug_command():
     """
     List configuration, settings, version and other debug info.
@@ -130,7 +136,6 @@ def _add_item(todo_item: dict, todofile_path: Path):
         raise typer.Exit(2)
 
 
-# add [--priority <priority>] [--due <due>] [--owner <owner>] [--done] <item description>
 @app.command()
 def add(
     description: str,
@@ -158,6 +163,55 @@ def add(
         _add_item(todo_item, globals.global_todofile)
     print_todo_item(todo_item)
 
+
+@app.command(name="remove")
+@app.command_alias(name="rm")
+def remove_command(
+    spec: str = typer.Argument(None, help="ID, index, range or regular expression to match item text"),
+    id: str = typer.Option(None, "--id", "-i", help="ID of the item to remove"),
+    index: int = typer.Option(None, "--index", "-n", help="Index of the item to remove"),
+    range: str = typer.Option(None, "--range", "-r", help="Range of item indices to remove, e.g, 2:5, 2:, :5"),
+    match: str = typer.Option(None, "--match", "-m", help="Regular expression to match item text"),
+    # TODO: add more filter options, done/undone, priority, due, owner, etc.
+    global_todo: bool = typer.Option(False, "--global", "-G",
+                                     help="Remove from global todo list, even if current folder is under a git repo"),
+):
+    """
+    Remove/delete todo items from the list
+    """
+
+    def removefromfile(todo_file: Path) -> int:
+        count = 0
+        if todo_file and todo_file.exists():
+            console().print(f"[header]{make_pretty_path(todo_file)}[text]")
+            todo = TodoListParser()
+            todo.parse(todo_file)
+            try:
+                items = taskitems.create_iterator(todo.items, omit_means_all=False,
+                                                  spec=spec, id=id, index=index, range=range, match=match)
+            except ValueError as e:
+                error_console().print(f"error: {e}")
+                raise typer.Exit(2)
+
+            for item in items:
+                print_todo_item(item)
+                count += 1
+            # backup_command.save_with_backups(todo_file, todo)
+        return count
+
+    if not global_todo and globals.local_todofile and globals.local_todofile.exists():
+        # remove from local todo list
+        removed = removefromfile(globals.local_todofile)
+    elif globals.global_todofile and globals.global_todofile.exists():
+        # remove from global todo list
+        removed = removefromfile(globals.global_todofile)
+    else:
+        removed = 0
+
+    if removed == 0:
+        error_console().print("nothing to remove")
+
+
 def _done_undone_marker(done: bool, spec, id, index, range, match, all):
     """
     Mark one or more todo items as done or undone.
@@ -166,27 +220,28 @@ def _done_undone_marker(done: bool, spec, id, index, range, match, all):
     if sum([spec is not None, id is not None, index is not None, range is not None, match is not None, all]) != 1:
         raise typer.BadParameter("Exactly one of --id, --index, --range, --match or --all must be provided")
 
-    if globals.global_todofile and globals.global_todofile.exists():
-        console().print(f"[header]{globals.global_todofile}[text] changes:")
-        todo = TodoListParser()
-        todo.parse(globals.global_todofile)
-        items = taskitems.task_iterator(todo.items, id=id, index=index, range=range, match=match) if not all else todo.items
-        for item in items:
-            item['checked'] = done
-            print_todo_item(item)
-        # write back to file
-        backup_command.save_with_backups(globals.global_todofile, todo)
+    def doneundonefromfile(todo_file: Path) -> int:
+        count = 0
+        if todo_file and todo_file.exists():
+            console().print(f"[header]{make_pretty_path(todo_file)}[text] changes:")
+            todo = TodoListParser()
+            todo.parse(todo_file)
+            try:
+                items = taskitems.create_iterator(todo.items, id=id, index=index, range=range, match=match) if not all else todo.items
+            except ValueError as e:
+                error_console().print(f"error: {e}")
+                raise typer.Exit(2)
 
-    if globals.local_todofile and globals.local_todofile.exists():
-        console().print(f"[header]{globals.local_todofile}[text] changes:")
-        todo = TodoListParser()
-        todo.parse(globals.local_todofile)
-        items = taskitems.task_iterator(todo.items, id=id, index=index, range=range, match=match) if not all else todo.items
-        for item in items:
-            item['checked'] = done
-            print_todo_item(item)
-        # write back to file
-        backup_command.save_with_backups(globals.local_todofile, todo)
+            for item in items:
+                item['checked'] = done
+                print_todo_item(item)
+                count += 1
+            # write back to file
+            backup_command.save_with_backups(todo_file, todo)
+        return count
+
+    doneundonefromfile(globals.global_todofile)
+    doneundonefromfile(globals.local_todofile)
 
 
 # done [--id <id> | --index <index> | --all | --match <regular expression> | <specification>]
@@ -293,7 +348,6 @@ def main_callback(
 
 
 def main(*args, **kwargs):
-    # typer_aliases(app=app)
     app(*args, **kwargs)
 
 
