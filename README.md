@@ -1,15 +1,15 @@
 # DrToDo
 
-[![Python Validated](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml/badge.svg)](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml)
+[![Builds](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml/badge.svg)](https://github.com/exilium-com/DrTodo/actions/workflows/validate.yml)
+[![Compatible Python Versions](https://badgen.net/pypi/python/drtodo?icon=pypi)](https://pypi.org/project/drtodo/)
+
+[![Publish](https://github.com/exilium-com/DrTodo/actions/workflows/build.yml/badge.svg)](https://github.com/exilium-com/DrTodo/actions/workflows/build.yml)
+[![Latest Github tag](https://badgen.net/github/tag/exilium-com/DrTodo?icon=github&label=github%20tag)](https://github.com/exilium-com/DrTodo/tags/)
+[![Published Version](https://badgen.net/pypi/v/drtodo?icon=pypi&label=pypi%20tag)](https://pypi.org/project/drtodo/)
+
 
 This is the internal README with build instructions, source code information etc.
 The [external README with usage and installation instructions](READMEexample.md) is in the [drtodo folder](drtodo/). That is what is published in PyPI.org.
-
-This is a sample list of TODOs locally tracked in this git repo.
-
-To Do (used for testing):
-- [x] @WarpedPixel this is ~~to be~~ done
-- [ ] to do by 2/3/23 #32
 
 ## Building
 
