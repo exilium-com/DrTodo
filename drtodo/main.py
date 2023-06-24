@@ -220,7 +220,7 @@ def _done_undone_marker(done: bool, spec, id, index, range, match, all):
     if sum([spec is not None, id is not None, index is not None, range is not None, match is not None, all]) != 1:
         raise typer.BadParameter("Exactly one of --id, --index, --range, --match or --all must be provided")
 
-    def doneundonefromfile(todo_file: Path) -> int:
+    def doneundonefromfile(todo_file: Optional[Path]) -> int:
         count = 0
         if todo_file and todo_file.exists():
             console().print(f"[header]{make_pretty_path(todo_file)}[text] changes:")
@@ -287,7 +287,7 @@ def show(files: Optional[list[Path]] = typer.Argument(None, help="override which
     """
     md_print = util.print_md_as_raw if raw else util.print_md_pretty
     if not files:
-        files = [globals.global_todofile, globals.local_todofile]
+        files = [x for x in [globals.global_todofile, globals.local_todofile] if x]
     for file in files:
         if file and file.exists():
             if len(files) > 1:
@@ -324,21 +324,21 @@ panel_FILESELECTION = "File Selection Options"
 def main_callback(
     # settings_file: Optional[Path] = typer.Option(constants.appdir, "--settings", "-S", help="Settings file to use",
     #                                              rich_help_panel=panel_GLOBAL),
-    verbose: Optional[bool] = typer.Option(settings.verbose, "--verbose", "-v", help="Verbose output",
-                                           rich_help_panel=panel_GLOBAL),
-    mdfile: Optional[Path] = typer.Option(settings.mdfile, help="Markdown file to use for todo list",
-                                          rich_help_panel=panel_FILESELECTION),
-    section: Optional[str] = typer.Option(settings.section,
-                                          help="Section name in markdown file to use for todo list, with optional "\
-                                          "heading level, e.g. '## TODO'",
-                                          rich_help_panel=panel_FILESELECTION),
-    reverse_order: Optional[bool] = typer.Option(settings.reverse_order, "--reverse-order/--normal-order",
-                                                 help="Whether todo items should be in reverse order (latest first)",
-                                                 rich_help_panel=panel_FILESELECTION),
-    version: Optional[bool] = typer.Option(False, "--version", "-V", help="Show version and exit",
-                                           callback=_version_callback, is_eager=True, rich_help_panel=panel_GLOBAL),
+    verbose: bool = typer.Option(settings.verbose, "--verbose", "-v", help="Verbose output",
+                                 rich_help_panel=panel_GLOBAL),
+    mdfile: Path = typer.Option(settings.mdfile, help="Markdown file to use for todo list",
+                                rich_help_panel=panel_FILESELECTION),
+    section: str = typer.Option(settings.section,
+                                help="Section name in markdown file to use for todo list, with optional "\
+                                "heading level, e.g. '## TODO'",
+                                rich_help_panel=panel_FILESELECTION),
+    reverse_order: bool = typer.Option(settings.reverse_order, "--reverse-order/--normal-order",
+                                       help="Whether todo items should be in reverse order (latest first)",
+                                       rich_help_panel=panel_FILESELECTION),
+    version: bool = typer.Option(False, "--version", "-V", help="Show version and exit",
+                                 callback=_version_callback, is_eager=True, rich_help_panel=panel_GLOBAL),
 ):
-    settings.mdfile = mdfile
+    settings.mdfile = str(mdfile)
     settings.verbose = verbose
     settings.section = section
     settings.reverse_order = reverse_order

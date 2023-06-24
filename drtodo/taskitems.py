@@ -1,5 +1,5 @@
 import re
-from typing import Optional, Union
+from typing import Generator, Optional, Union
 
 
 def parse_slice(s: str) -> slice:
@@ -14,14 +14,14 @@ def parse_slice(s: str) -> slice:
 
 # iterator to traverse tasks that match a spec, id, index or re match (or all)
 def create_iterator(items: list, *,
-                    spec: Optional[Union[int, str]] = None,
-                    id: Optional[int] = None,
+                    spec: Optional[str] = None,
+                    id: Optional[str] = None,
                     index: Optional[int] = None,
-                    range: Optional[str] = None,
+                    range: Optional[Union[str, slice, range]] = None,
                     match: Optional[str] = None,
                     done: Optional[bool] = None,
                     omit_means_all: bool = False
-):
+) -> Generator:
     """
     returns an iterable that iterates through all tasks that match the given criteria:
     - spec: a string that can be an index, an ID or a regular expression
