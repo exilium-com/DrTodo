@@ -11,7 +11,7 @@ try:
     import tomllib as toml
 except ImportError:
     import tomli as toml
-from git import Repo
+from git.repo import Repo
 
 from . import __version__
 
@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     mdfile: str = Field('TODO.md', env=constants.env_prefix + 'MDFILE')
     section: str = Field('', env=constants.env_prefix + 'SECTION')
     reverse_order: bool = Field(False, env=constants.env_prefix + 'REVERSE_ORDER')
-    verbose: bool = False
+    verbose: bool = True
     keep_backups: int = 3   # number of backups to keep
     hide_hash: bool = False
     style: Union[Style, str] = ''
@@ -81,16 +81,37 @@ class Settings(BaseSettings):
         # }
 
 
-settings: Settings = None
+settings: Settings = None # type: ignore
 
 
 class Globals:
     gitroot: Optional[Path] = None
+    """Path to the root of the git repo, if any."""
     global_todofile: Optional[Path] = None
-    global_todofile_pretty: Optional[str] = None
     local_todofile: Optional[Path] = None
-    local_todofile_pretty: Optional[str] = None
+    todo_files: list[Path] = []
+    """List of todo files to operate on, in priority order."""
 
+    def set_todo_files(self, prefer_global: bool):
+        """
+        Initializes the todo_files list with the appropriate files to operate on, in priority order.
+        Some commands may operate on all of them (typically the least destructive ones),
+        others on just the first one (usually more destructive).
+        """
+        # TODO: logic here should change, this is ok for now. If local file pointed to by local settings
+        # or cli args exists, use that one. Otherwise, if global file exists, use that one.
+        # but this should consider if we are in a git repo or not and use the settings from the appropriate
+        # folder, e.g. if local .drtodo.toml points to MYLOCAL.md file, use that one if it exists. If not,
+        # either fallback to global behavior (and whatever global config.toml says) or print an error message
+        # that MYLOCAL.md does not exist.
+        if not prefer_global and globals.local_todofile is not None and globals.local_todofile.exists():
+            # operate on local todo list
+            self.todo_files = [globals.local_todofile]
+        elif globals.global_todofile is not None and globals.global_todofile.exists():
+            # operate from global todo list
+            self.todo_files = [globals.global_todofile]
+        else:
+            self.todo_files = []
 
 globals = Globals()
 
@@ -112,12 +133,15 @@ def load_config(config_folder: Path, config_filename: Path) -> dict[str, Any]:
     return result
 
 
-def make_pretty_path(path: Path) -> Path:
+def make_pretty_path(path: Optional[Path]) -> Optional[Path]:
     """Make a path pretty by replacing the home folder with ~ if possible/needed."""
-    try:
-        return '~' / path.relative_to(Path.home())
-    except ValueError:
-        return path
+    if path:
+        try:
+            return '~' / path.relative_to(Path.home())
+        except ValueError:
+            pass
+
+    return path
 
 
 def initialize():
@@ -173,9 +197,7 @@ def initialize():
     # command line options are processed later and will override anything
 
     globals.global_todofile = constants.appdir / settings.mdfile
-    globals.global_todofile_pretty = make_pretty_path(globals.global_todofile)
     globals.local_todofile = globals.gitroot / settings.mdfile if globals.gitroot else None
-    globals.local_todofile_pretty = make_pretty_path(globals.local_todofile) if globals.local_todofile else None
 
 
 def get_default_config() -> str:

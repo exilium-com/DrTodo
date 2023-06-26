@@ -1,4 +1,3 @@
-mdfile = 'TEST.md'
 verbose = true
 keep_backups = 2
 hide_hash = false

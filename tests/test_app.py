@@ -1,10 +1,13 @@
 # from typer.testing import CliRunner
-from typer_aliases import CliRunner
+import os
 
-from drtodo.main import app
-from drtodo import __version__
+os.environ["DRTODO_IGNORE_CONFIG"] = "True"
+# ensures consistent behavior regardless of local config files
+# NOTE: this means that config loading is not effectively tested here
 
-import pytest
+from drtodo import __version__       # noqa: E402
+from drtodo.main import app          # noqa: E402
+from typer_aliases import CliRunner  # noqa: E402
 
 
 runner = CliRunner(mix_stderr=False)
@@ -126,21 +129,16 @@ def test_add_remove():
     assert hash in result.stdout
     assert id in result.stdout
 
-    # TODO: this command does not exist yet
-    # # now delete the item
-    # result = runner.invoke(app, ["remove", id])
-
-    # # ensure that the item is gone
-    # result = runner.invoke(app, ["list"])
-    # assert result.exit_code == 0
-    # assert "testing added item" not in result.stdout
-    # assert hash not in result.stdout
-    # # id may be reused so we can't check for it
-
-    # TODO: instead we restore the backup
-    result = runner.invoke(app, ["backup", "--force", "restore"])
+    # now delete the item
+    result = runner.invoke(app, ["remove", id])
     assert result.exit_code == 0
-    assert "restored:" in result.stdout
+
+    # ensure that the item is gone
+    result = runner.invoke(app, ["list"])
+    assert result.exit_code == 0
+    assert "testing added item" not in result.stdout
+    assert hash not in result.stdout
+    # id may be reused so we can't check for it
 
 
 def test_do_done():

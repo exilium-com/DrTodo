@@ -127,6 +127,17 @@
                 "1"
             ],
             "justMyCode": false
+        },
+        {
+            "name": "DrTodo: backup list",
+            "type": "python",
+            "request": "launch",
+            "module": "drtodo.main",
+            "args": [
+                "backup",
+                "list"
+            ],
+            "justMyCode": false
         }
     ]
 }

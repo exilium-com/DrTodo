@@ -11,7 +11,6 @@ from .settings import make_pretty_path, settings, globals
 app = Typer()
 
 force_operation = False
-force_global = False
 
 
 def make_backup_path(pathname: Path, i: int) -> Path:
@@ -85,8 +84,7 @@ def list():
     """
     Lists any existing backup files
     """
-    locations = [globals.global_todofile] if force_global else [globals.global_todofile, globals.local_todofile]
-    for location in locations:
+    for location in globals.todo_files:
         if location and location.exists():
             for i, bakfile in scan_backups(location):
                 _print_file(-i, bakfile)
@@ -100,8 +98,7 @@ def restore():
     """
     Rolls back backup files by one (3 levels of backup are kept by default).
     """
-    locations = [globals.global_todofile] if force_global else [globals.global_todofile, globals.local_todofile]
-    for location in locations:
+    for location in globals.todo_files:
         if location and location.exists():
             console().print(f"[warning]Restoring backup for [text]{make_pretty_path(location)}[/text] file will be overwritten![/warning]")
             if force_operation or typer.confirm("Proceed?"):
@@ -116,9 +113,6 @@ def restore():
 @app.callback()
 def main(
     force: bool = typer.Option(False, "--force", "-f", help="Force the operation to proceed"),
-    use_global: bool = typer.Option(False, "--global", "-G",
-                                    help="Use global todo list, even if current folder is under a git repo"),
 ):
-    global force_operation, force_global
+    global force_operation
     force_operation = force
-    force_global = use_global
