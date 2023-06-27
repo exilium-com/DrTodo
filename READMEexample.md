@@ -1,4 +1,4 @@
-# DrTodo
+# DrToDo
 
 > This is a likely ***STALE*** readme file, here as an *example*. Real file is built
 > as part of the build process and is located at [drtodo/README.md](drtodo/README.md).
@@ -51,7 +51,7 @@ $ todo done 0
 
 ## Contents
 
-- [DrTodo](#drtodo)
+- [DrToDo](#drtodo)
   - [Quick Start](#quick-start)
     - [installation](#installation)
     - [initialization](#initialization)
@@ -93,7 +93,7 @@ $ todo done 0
 
 # Markdown Files
 
-By default, DrTodo will look for any lists formatted as GitHub-style task lists in
+By default, DrToDo will look for any lists formatted as GitHub-style task lists in
 any Markdown files it reads.
 
 For example a file containing this:
@@ -112,7 +112,7 @@ This is my cool project readme file.
 Will produce the following output:
 ```console
 $ todo list
-~/work/src/DrTodo/TODO.md
+~/work/src/DrToDo/TODO.md
   0: 56a01da 🔘 write a readme
   1: 5869ea7 ⚫ make it useful
   2: 7a787ec ⚫ bug 1
@@ -132,7 +132,7 @@ after the
 
 # Settings
 
-DrTodo allows plenty of configuration options that can be specialized by folder or per user.
+DrToDo allows plenty of configuration options that can be specialized by folder or per user.
 There are many config files that can be used and are combined in specific ways detailed below.
 Simplest case is `~/.drtodo/config.toml` which is the global config file.
 
@@ -237,7 +237,7 @@ error = 'red'
 
 # `DrToDo`
 
-**DrTodo, MD**: *a straightforward todo list manager for markdown files in git repos.*
+**DrToDo, MD**: *a straightforward todo list manager for markdown files in git repos.*
 
 **Usage**:
 
@@ -256,7 +256,7 @@ $ DrToDo [OPTIONS] COMMAND [ARGS]...
 * `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
 * `--help`: Show this message and exit.
 
-DrTodo can manage items in a global todo list (~/.drtodo/TODO.md) and in a local todo list (~/work/src/DrTodo/TODO.md). Settings are read from config files and env variables (see *todo man config*).
+DrToDo can manage items in a global todo list (~/.drtodo/TODO.md) and in a local todo list (~/work/src/DrToDo/TODO.md). Settings are read from config files and env variables (see *todo man config*).
 
 **Commands**:
 
@@ -265,7 +265,7 @@ DrTodo can manage items in a global todo list (~/.drtodo/TODO.md) and in a local
 * `dbg`: List configuration, settings, version and...
 * `debug`: List configuration, settings, version and...
 * `done`: Mark one or more todo items as done
-* `init`: Initialize DrTodo folder and files
+* `init`: Initialize DrToDo folder and files
 * `list`: List todo items in the list
 * `ls`: List todo items in the list
 * `man`: Show detailed help and context for...
@@ -412,7 +412,7 @@ $ DrToDo done [OPTIONS] [SPEC]
 
 ## `DrToDo init`
 
-Initialize DrTodo folder and files
+Initialize DrToDo folder and files
 
 **Usage**:
 

@@ -1,11 +1,12 @@
 from rich.console import Console
 from rich.theme import Theme
-from .settings import settings
 
 _console = None
 _error_console = None
 
 def console():
+    from .settings import settings
+
     global _console
     if not _console:
         custom_theme = Theme({

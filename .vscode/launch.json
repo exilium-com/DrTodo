@@ -13,7 +13,7 @@
             "purpose": [ "debug-test" ]
         },
         {
-            "name": "DrTodo: version",
+            "name": "DrToDo: version",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
@@ -23,7 +23,7 @@
             "justMyCode": false
         },
         {
-            "name": "DrTodo: help",
+            "name": "DrToDo: help",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
@@ -33,7 +33,18 @@
             "justMyCode": false
         },
         {
-            "name": "DrTodo: list",
+            "name": "DrToDo: init",
+            "type": "python",
+            "request": "launch",
+            "module": "drtodo.main",
+            "args": [
+                "init",
+                "--local"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "DrToDo: list",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
@@ -43,7 +54,7 @@
             "justMyCode": false
         },
         {
-            "name": "DrTodo: show",
+            "name": "DrToDo: show",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
@@ -53,7 +64,7 @@
             "justMyCode": false
         },
         {
-            "name": "DrTodo: backup restore",
+            "name": "DrToDo: backup restore",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
@@ -64,7 +75,7 @@
             "justMyCode": false
         },
         {
-            "name": "DrTodo: man",
+            "name": "DrToDo: man",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
@@ -75,7 +86,7 @@
             "justMyCode": false
         },
         {
-            "name": "DrTodo: debug",
+            "name": "DrToDo: debug",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
@@ -85,7 +96,7 @@
             "justMyCode": false
         },
         {
-            "name": "DrTodo: done 1",
+            "name": "DrToDo: done 1",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
@@ -96,7 +107,7 @@
             "justMyCode": false
         },
         {
-            "name": "DrTodo: undone 1",
+            "name": "DrToDo: undone 1",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
@@ -107,7 +118,7 @@
             "justMyCode": false
         },
         {
-            "name": "DrTodo: done 1",
+            "name": "DrToDo: done 1",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
@@ -118,7 +129,7 @@
             "justMyCode": false
         },
         {
-            "name": "DrTodo: remove 1",
+            "name": "DrToDo: remove 1",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
@@ -129,7 +140,7 @@
             "justMyCode": false
         },
         {
-            "name": "DrTodo: backup list",
+            "name": "DrToDo: backup list",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",

@@ -19,7 +19,7 @@ This is my cool project readme file.
 Will produce the following output:
 ```console
 $ todo list
-~/work/src/DrTodo/TODO.md
+~/work/src/DrToDo/TODO.md
   0: 56a01da 🔘 write a readme
   1: 5869ea7 ⚫ make it useful
   2: 7a787ec ⚫ bug 1

@@ -11,7 +11,7 @@ from . import backup_command, util
 from .man_command import manapp
 from .mdparser import TaskListTraverser, TodoListParser
 from .rich_display import console, error_console
-from .settings import Style, constants, globals, make_pretty_path, settings
+from .settings import Style, settings, constants, globals, make_pretty_path, postclioptions_initialize, create_appdir_if_possible, create_local_todofile_if_possible
 from . import taskitems
 
 
@@ -19,8 +19,8 @@ app = Typer(
     no_args_is_help=True,
     rich_markup_mode="markdown",
     help=f"**{constants.appname}, MD**: *a straightforward todo list manager for markdown files in git repos.*",
-    epilog=f"DrTodo can manage items in a global todo list ({make_pretty_path(globals.global_todofile)})"
-    f" and in a local todo list ({make_pretty_path(globals.local_todofile) or 'if the current folder is under a git repo'})."
+    epilog=f"DrToDo can manage items in a global todo list (typically in {make_pretty_path(constants.appdir)})"
+    f" and in a local todo list (if the current folder is under a git repo configured for {constants.appname})."
     f" Settings are read from config files and env variables (see *todo man config*).",
 )
 
@@ -29,24 +29,16 @@ def version_string() -> str:
     return f"{constants.appname} v{constants.version}"
 
 
-def ensure_appdir(may_create: bool = False) -> None:
-    if not constants.appdir.exists():
-        if not may_create:
-            error_console().print(f"DrTodo folder {constants.appdir} does not exist. Use [bold]todo init[/bold] to create it.")
-        else:
-            constants.appdir.mkdir(parents=False, exist_ok=False)
-            assert globals.global_todofile and not globals.global_todofile.exists()
-            globals.global_todofile.touch()
-            repo = Repo.init(constants.appdir)
-            repo.index.add([globals.global_todofile])
-
-
 @app.command()
-def init():
+def init(local: bool = typer.Option(False, "--local", "-L", help="initialize local todo list if under a git repo")):
     """
-    Initialize DrTodo folder and files
+    Initialize DrToDo folder and files (defaults to global location)
     """
-    ensure_appdir(may_create=True)
+
+    if local:
+        create_local_todofile_if_possible()
+    else:
+        create_appdir_if_possible()
 
 
 def print_todo_item(item: dict):
@@ -346,10 +338,7 @@ def main_callback(
     settings.verbose = verbose
     settings.section = section
     settings.reverse_order = reverse_order
-    globals.set_todo_files(global_todo)
-
-    # BUG: this is called even when the command is init, so it prints a warning about the appdir not existing
-    ensure_appdir()
+    postclioptions_initialize(force_global=global_todo)
 
 
 def main(*args, **kwargs):

@@ -22,7 +22,7 @@ def test_help():
 def test_debug():
     result = runner.invoke(app, ["debug"])
     assert result.exit_code == 0
-    assert "'appname': 'DrTodo'" in result.stdout
+    assert "'appname': 'DrToDo'" in result.stdout
 
 
 def test_list():
@@ -92,7 +92,7 @@ def test_show():
 def test_version():
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
-    assert "DrTodo" in result.stdout
+    assert "DrToDo" in result.stdout
     assert __version__ in result.stdout
 
 
