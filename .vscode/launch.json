@@ -49,6 +49,7 @@
             "request": "launch",
             "module": "drtodo.main",
             "args": [
+                "--global",
                 "list",
             ],
             "justMyCode": false

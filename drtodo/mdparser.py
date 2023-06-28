@@ -4,7 +4,7 @@ from mistune.renderers.markdown import MarkdownRenderer
 from .mistuneplugin import task_lists
 from typing import Callable
 
-from .settings import settings
+from . import config
 
 class TokenTraverser:
 
@@ -71,11 +71,11 @@ class TaskListTraverser(TokenTraverser):
     def find_task_lists(self, tokens: list[dict]) -> list:
         found_items = []
 
-        if settings.section:
+        if config.settings.section:
             # we will only look for tasks in the section with the given name and optional level
             # parse the section name and level e.g. "## section name", "section name", etc.
-            s = settings.section.lstrip('#')
-            selected_section = { 'level': len(settings.section) - len(s),
+            s = config.settings.section.lstrip('#')
+            selected_section = { 'level': len(config.settings.section) - len(s),
                                  'name': s.strip().casefold(),
                                  'current': False }
         else:

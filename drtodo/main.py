@@ -11,54 +11,54 @@ from . import backup_command, util
 from .man_command import manapp
 from .mdparser import TaskListTraverser, TodoListParser
 from .rich_display import console, error_console
-from .settings import Style, settings, constants, globals, make_pretty_path, postclioptions_initialize, create_appdir_if_possible, create_local_todofile_if_possible
+from . import config
 from . import taskitems
 
 
 app = Typer(
     no_args_is_help=True,
     rich_markup_mode="markdown",
-    help=f"**{constants.appname}, MD**: *a straightforward todo list manager for markdown files in git repos.*",
-    epilog=f"DrToDo can manage items in a global todo list (typically in {make_pretty_path(constants.appdir)})"
-    f" and in a local todo list (if the current folder is under a git repo configured for {constants.appname})."
+    help=f"**{config.constants.appname}, MD**: *a straightforward todo list manager for markdown files in git repos.*",
+    epilog=f"DrToDo can manage items in a global todo list (typically in {config.make_pretty_path(config.constants.appdir)})"
+    f" and in a local todo list (if the current folder is under a git repo configured for {config.constants.appname})."
     f" Settings are read from config files and env variables (see *todo man config*).",
 )
 
 
 def version_string() -> str:
-    return f"{constants.appname} v{constants.version}"
+    return f"{config.constants.appname} v{config.constants.version}"
 
 
 @app.command()
-def init(local: bool = typer.Option(False, "--local", "-L", help="initialize local todo list if under a git repo")):
+def init():
     """
-    Initialize DrToDo folder and files (defaults to global location)
+    Initialize DrToDo folder and files (in global location, use --local to override)
     """
 
-    if local:
-        create_local_todofile_if_possible()
+    if config.globals.force_local:
+        config.create_local_todofile_if_possible()
     else:
-        create_appdir_if_possible()
+        config.create_appdir_if_possible()
 
 
 def print_todo_item(item: dict):
     # print a green large checkmark if checked is True or a blank empty box if checked is False
     # and properly render the markdown text with rich
     # trim trailing whitespace too
-    assert isinstance(settings.style, Style)
-    checked_bullet = settings.style.checked
-    unchecked_bullet = settings.style.unchecked
+    assert isinstance(config.settings.style, config.Style)
+    checked_bullet = config.settings.style.checked
+    unchecked_bullet = config.settings.style.unchecked
 
     strike = ""
     dim = ""
     if item['checked']:
-        if settings.style.dim_done:
+        if config.settings.style.dim_done:
             dim = "[dim]"
-        if settings.style.strike_done:
+        if config.settings.style.strike_done:
             strike = "[strike]"
 
     index_part = f"[index]{dim}{strike}{item['index']:>3}: "
-    hash_part = f"[hash]{dim}{strike}{item['id'][:7]} " if not settings.hide_hash else ""
+    hash_part = f"[hash]{dim}{strike}{item['id'][:7]} " if not config.settings.hide_hash else ""
     checkmark_part = f"[text]{dim}{strike}{checked_bullet if item['checked'] else unchecked_bullet} "
     mdtext_part = rich.markdown.Markdown(item['text'].rstrip())
     if dim:
@@ -84,7 +84,7 @@ def list_command(
 
     def listfromfile(todofile: Path):
         if todofile and todofile.exists():
-            console().print(f"[header]{make_pretty_path(todofile)}[text]")
+            console().print(f"[header]{config.make_pretty_path(todofile)}[text]")
             todo = TodoListParser()
             todo.parse(todofile)
             try:
@@ -97,7 +97,7 @@ def list_command(
             for item in items:
                 print_todo_item(item)
 
-    for todofile in globals.todo_files:
+    for todofile in config.globals.todo_files:
         listfromfile(todofile)
 
 
@@ -107,9 +107,7 @@ def debug_command():
     """
     List configuration, settings, version and other debug info.
     """
-    console().print(f"{version_string()}", highlight=False)
-
-    d = constants.__dict__ | dict(settings) | globals.__dict__
+    d = config.constants.__dict__ | dict(config.settings) | config.globals.__dict__
     console().print(d)
 
 
@@ -141,11 +139,11 @@ def add(
     prioritystr = f" P{priority}" if priority else ""
     itemstr = f"{prioritystr}{ownerstr}{duestr} {description}".strip()
     todo_item = TaskListTraverser.create_item(itemstr, index=0, checked=done)
-    for todo_file in globals.todo_files:
-        if (settings.verbose):
-            console().print(f"[header]{make_pretty_path(todo_file)}[text]")
+    for todo_file in config.globals.todo_files:
+        if (config.settings.verbose):
+            console().print(f"[header]{config.make_pretty_path(todo_file)}[text]")
         _add_item(todo_item, todo_file)
-    if settings.verbose:
+    if config.settings.verbose:
         print_todo_item(todo_item)
 
 
@@ -166,8 +164,8 @@ def remove_command(
     def removefromfile(todo_file: Path) -> int:
         count = 0
         if todo_file and todo_file.exists():
-            if (settings.verbose):
-                console().print(f"[header]{make_pretty_path(todo_file)}[text]")
+            if (config.settings.verbose):
+                console().print(f"[header]{config.make_pretty_path(todo_file)}[text]")
             todo = TodoListParser()
             todo.parse(todo_file)
             try:
@@ -187,7 +185,7 @@ def remove_command(
                 while to_remove:
                     item = to_remove.pop(0)
                     todo.remove_item(item)
-                    if (settings.verbose):
+                    if (config.settings.verbose):
                         print_todo_item(item)
             except Exception as e:
                 error_console().print(f"no items removed: {e}")
@@ -197,7 +195,7 @@ def remove_command(
         return count
 
     removed = 0
-    for todo_file in globals.todo_files:
+    for todo_file in config.globals.todo_files:
         removed += removefromfile(todo_file)
 
     if removed == 0:
@@ -215,8 +213,8 @@ def _done_undone_marker(done: bool, spec, id, index, range, match, all):
     def doneundonefromfile(todo_file: Optional[Path]) -> int:
         count = 0
         if todo_file and todo_file.exists():
-            if (settings.verbose):
-                console().print(f"[header]{make_pretty_path(todo_file)}[text] changes:")
+            if (config.settings.verbose):
+                console().print(f"[header]{config.make_pretty_path(todo_file)}[text] changes:")
             todo = TodoListParser()
             todo.parse(todo_file)
             try:
@@ -228,14 +226,14 @@ def _done_undone_marker(done: bool, spec, id, index, range, match, all):
 
             for item in items:
                 item['checked'] = done
-                if (settings.verbose):
+                if (config.settings.verbose):
                     print_todo_item(item)
                 count += 1
             # write back to file
             backup_command.save_with_backups(todo_file, todo)
         return count
 
-    for todo_file in globals.todo_files:
+    for todo_file in config.globals.todo_files:
         doneundonefromfile(todo_file)
 
 
@@ -282,11 +280,11 @@ def show(files: Optional[list[Path]] = typer.Argument(None, help="override which
     """
     md_print = util.print_md_as_raw if raw else util.print_md_pretty
     if not files:
-        files = globals.todo_files
+        files = config.globals.todo_files
     for file in files:
         if file and file.exists():
             if len(files) > 1:
-                console().print(f"[header]{make_pretty_path(file)}[text]")
+                console().print(f"[header]{config.make_pretty_path(file)}[text]")
             with file.open() as f:
                 mdstring = f.read()
                 md_print(mdstring)
@@ -310,35 +308,53 @@ def _version_callback(value: bool) -> None:
         raise typer.Exit()
 
 
-panel_FILESELECTION = "File Selection Options"
+def _global_local_callback(value: bool):
+    # called if either --local(value=False) or --global(value=True) is provided. If neither is provided, value is None.
+    if value is not None:
+        config.postclioptions_initialize(force_global=value, force_local=not value)
+
+
+panel_ADVANCED = "Advanced options"
 
 
 # Typer callback handles global options like --mdfile and --verbose
 @app.callback()
 def main_callback(
-    # settings_file: Optional[Path] = typer.Option(constants.appdir, "--settings", "-S", help="Settings file to use",
+    # settings_file: Optional[Path] = typer.Option(config.constants.appdir, "--settings", "-S", help="Settings file to use",
     #                                              rich_help_panel=panel_GLOBAL),
-    verbose: bool = typer.Option(settings.verbose, "--verbose/--quiet", "-v/-q", help="Verbose or quiet output"),
-    mdfile: Path = typer.Option(settings.mdfile, help="Markdown file to use for todo list",
-                                rich_help_panel=panel_FILESELECTION),
-    global_todo: bool = typer.Option(False, "--global", "-G",
-                                     help="Operate on global todo list, even if current folder is under a git repo",
-                                     rich_help_panel=panel_FILESELECTION),
-    section: str = typer.Option(settings.section,
-                                help="Section name in markdown file to use for todo list, with optional "\
-                                "heading level, e.g. '## TODO'",
-                                rich_help_panel=panel_FILESELECTION),
-    reverse_order: bool = typer.Option(settings.reverse_order, "--reverse-order/--normal-order",
-                                       help="Whether todo items should be in reverse order (latest first)",
-                                       rich_help_panel=panel_FILESELECTION),
-    version: bool = typer.Option(False, "--version", "-V", help="Show version and exit",
-                                 callback=_version_callback, is_eager=True),
+    global_local: Optional[bool] = typer.Option(None,
+        "--global/--local", "-G/-L",
+        help="Force operation on global or local todo list. Default is chosen smartly: local if folder is "\
+        "under a git repo initialized for DrToDo, global otherwise.",
+        callback=_global_local_callback, is_eager=True, show_default=False,
+        rich_help_panel=panel_ADVANCED),
+    section: Optional[str] = typer.Option(None,
+        help="Section name in markdown file to use for todo list, with optional "\
+        "heading level, e.g. '## TODO'", show_default=False,
+        rich_help_panel=panel_ADVANCED),
+    reverse_order: Optional[bool] = typer.Option(config.settings.reverse_order,
+        "--reverse-order/--normal-order",
+        help="Whether todo items should be in reverse order (latest first)",
+        rich_help_panel=panel_ADVANCED),
+    mdfile: Optional[Path] = typer.Option(None,
+        help="Markdown file to use for todo list", show_default=False,
+        rich_help_panel=panel_ADVANCED),
+    verbose: Optional[bool] = typer.Option(config.settings.verbose,
+        "--verbose/--quiet", "-v/-q",
+        help="Verbose or quiet output"),
+    version: bool = typer.Option(False,
+        "--version", "-V",
+        help="Show version and exit",
+        callback=_version_callback, is_eager=True),
 ):
-    settings.mdfile = str(mdfile)
-    settings.verbose = verbose
-    settings.section = section
-    settings.reverse_order = reverse_order
-    postclioptions_initialize(force_global=global_todo)
+    if mdfile:
+        config.settings.mdfile = str(mdfile)
+    if verbose:
+        config.settings.verbose = verbose
+    if section:
+        config.settings.section = section
+    if reverse_order:
+        config.settings.reverse_order = reverse_order
 
 
 def main(*args, **kwargs):

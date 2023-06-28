@@ -5,17 +5,17 @@ _console = None
 _error_console = None
 
 def console():
-    from .settings import settings
+    from . import config
 
     global _console
     if not _console:
         custom_theme = Theme({
-            "index": settings.style.index,
-            "hash": settings.style.hash,
-            "text": settings.style.text,
-            "header": settings.style.header,
-            "warning": settings.style.warning,
-            "error": settings.style.error,
+            "index": config.settings.style.index,
+            "hash": config.settings.style.hash,
+            "text": config.settings.style.text,
+            "header": config.settings.style.header,
+            "warning": config.settings.style.warning,
+            "error": config.settings.style.error,
         })
         _console = Console(theme=custom_theme)
     return _console

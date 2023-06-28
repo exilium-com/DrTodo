@@ -6,7 +6,7 @@ import typer
 from typer_aliases import Typer
 
 from .rich_display import console
-from .settings import make_pretty_path, settings, globals
+from . import config
 
 app = Typer()
 
@@ -28,7 +28,7 @@ def save_with_backups(pathname: Path, todo):
     todo.write(tmpfilepath)
 
     # if file write worked, then we can perform the rename dance
-    n = settings.keep_backups
+    n = config.settings.keep_backups
     if n > 0:
         # we keep n backups named as '.bak-1' (for the most recent n-1 backup), '.bak-2', etc.)
         # first delete the oldest backup
@@ -54,7 +54,7 @@ def restore_backup(pathname: Path):
         # rename the most recent backup to the original filename
         make_backup_path(pathname, 1).rename(pathname)
         # then rename backups in reverse order
-        for i in range(2, settings.keep_backups + 1):
+        for i in range(2, config.settings.keep_backups + 1):
             bakfilepath = make_backup_path(pathname, i)
             if bakfilepath.exists():
                 bakfilepath.rename(make_backup_path(pathname, i - 1))
@@ -64,7 +64,7 @@ def restore_backup(pathname: Path):
 
 
 def scan_backups(pathname: Path):
-    n = settings.keep_backups
+    n = config.settings.keep_backups
     if n > 0:
         for i in range(n, 0, -1):
             bakfilepath = make_backup_path(pathname, i)
@@ -74,7 +74,7 @@ def scan_backups(pathname: Path):
 
 def _print_file(index, filepath: Path):
     modtime = time.ctime(filepath.stat().st_mtime)
-    console().print(f"[index]{index:>3}:[/index] [hash]{modtime}[/hash] [text]{make_pretty_path(filepath)}[/text]")
+    console().print(f"[index]{index:>3}:[/index] [hash]{modtime}[/hash] [text]{config.make_pretty_path(filepath)}[/text]")
 
 
 
@@ -84,7 +84,7 @@ def list():
     """
     Lists any existing backup files
     """
-    for location in globals.todo_files:
+    for location in config.globals.todo_files:
         if location and location.exists():
             for i, bakfile in scan_backups(location):
                 _print_file(-i, bakfile)
@@ -98,9 +98,9 @@ def restore():
     """
     Rolls back backup files by one (3 levels of backup are kept by default).
     """
-    for location in globals.todo_files:
+    for location in config.globals.todo_files:
         if location and location.exists():
-            console().print(f"[warning]Restoring backup for [text]{make_pretty_path(location)}[/text] file will be overwritten![/warning]")
+            console().print(f"[warning]Restoring backup for [text]{config.make_pretty_path(location)}[/text] file will be overwritten![/warning]")
             if force_operation or typer.confirm("Proceed?"):
                 restore_backup(location)
                 _print_file('restored', location)

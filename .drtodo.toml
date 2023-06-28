@@ -1,6 +1,7 @@
 verbose = true
 keep_backups = 2
 hide_hash = false
+section = '## TODO'
 [style]
 strike_done = true
 dim_done = false

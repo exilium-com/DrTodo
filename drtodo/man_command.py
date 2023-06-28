@@ -4,7 +4,7 @@ from . import man
 
 from typer_aliases import Typer
 
-from .settings import constants, get_default_config
+from . import config
 from . import util
 
 
@@ -14,15 +14,15 @@ manapp = Typer()
 
 def md_intro():
     with open(resources.files(man) / 'intro.md', 'r') as f:
-        return f.read().format(**constants.__dict__)
+        return f.read().format(**config.constants.__dict__)
 
 def md_mdfiles():
     with open(resources.files(man) / 'mdfiles.md', 'r') as f:
-        return f.read().format(**constants.__dict__)
+        return f.read().format(**config.constants.__dict__)
 
 def md_config():
     with open(resources.files(man) / 'config.md', 'r') as f:
-        return f.read().format(**constants.__dict__, DEFAULT_CONFIG=get_default_config())
+        return f.read().format(**config.constants.__dict__, DEFAULT_CONFIG=config.get_default_config())
 
 
 @manapp.command()
@@ -35,9 +35,9 @@ def mdfiles():
     man_output(md_mdfiles())
 
 
-@manapp.command()
+@manapp.command(name="config")
 @manapp.command_alias(name="settings")
-def config():
+def config_command():
     """
     Where settings are stored and how to configure them.
     """
