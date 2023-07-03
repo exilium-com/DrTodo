@@ -2,7 +2,7 @@ import mistune
 from pathlib import Path
 from mistune.renderers.markdown import MarkdownRenderer
 from .mistuneplugin import task_lists
-from typing import Callable
+from typing import Callable, Optional
 
 from . import config
 
@@ -18,7 +18,7 @@ class TokenTraverser:
             if tok['type'] == search_token_type:
                 yield tok
             if 'children' in tok:
-                yield from TokenTraverser.find_tokens(tok['children'], search_token_type)
+                yield from TokenTraverser.tokens_by_type(tok['children'], search_token_type)
 
     @staticmethod
     def traverse_tokens(tokens, callback: Callable[[], bool]):
@@ -40,7 +40,7 @@ class TaskListTraverser(TokenTraverser):
         return hashlib.sha1(text.encode('utf-8')).hexdigest()
 
     @staticmethod
-    def create_item(text, *, index: int, checked: bool = False, token: dict = None) -> dict:
+    def create_item(text, *, index: int, checked: bool = False, token: Optional[dict] = None) -> dict:
         """
         creates a dict to represent a task list item from text and an index.
         If token is given, it is used, otherwise a new one is created.
