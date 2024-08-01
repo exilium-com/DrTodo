@@ -1,0 +1,22 @@
+# group minor-- updates for pip/poetry and github-actions, major ones get individual PRs
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      minor:
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "⬆️[🐍poetry] "
+  - package-ecosystem: "github-actions"
+    directory: ".github/workflows"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 1
+    groups:
+      minor:
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "⬆️[🤖github-actions] "
