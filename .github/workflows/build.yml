@@ -85,7 +85,7 @@ jobs:
         - name: Install poetry
           run: pipx install poetry
         - name: Setup Python
-          uses: actions/setup-python@v5.1
+          uses: actions/setup-python@v5.1.1
           with:
             python-version: ${{ env.python-version }}
             cache: 'poetry'
