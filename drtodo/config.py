@@ -245,7 +245,7 @@ def create_local_todofile_if_possible() -> bool:
                 error_console().print(f"[warning]{make_pretty_path(local_config_path)} or {make_pretty_path(local_todofile)} already exist")
     else:
         if settings.verbose:
-            error_console().print(f"[warning]not under a git repo (required for local todo file)")
+            error_console().print("[warning]not under a git repo (required for local todo file)")
     return False
 
 

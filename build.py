@@ -1,12 +1,13 @@
-import subprocess
-import sys
+import logging
 import os
+import subprocess
+from urllib.parse import urljoin, urlparse
+
 import mistune
 from mistune.renderers.markdown import MarkdownRenderer
-from urllib.parse import urljoin, urlparse
-from drtodo import mdparser
 from rich.logging import RichHandler
-import logging
+
+from .drtodo import mdparser
 
 logging.basicConfig(level="INFO", datefmt="[%X]", format="%(message)s", handlers=[RichHandler()])
 log = logging.getLogger(__name__)

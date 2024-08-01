@@ -3,7 +3,7 @@ from typing import Optional
 
 import rich.markdown
 import typer
-from git.repo import Repo
+# from git.repo import Repo
 
 from typer_aliases import Typer
 
