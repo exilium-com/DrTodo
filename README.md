@@ -177,45 +177,43 @@ $ todo --help
 
  DrToDo, MD: a straightforward todo list manager for markdown files in git repos.
 
-╭─ Options ─────────────────────────────────────────────────────────────────────────────────────╮
-│ --install-completion        [bash|zsh|fish|powershell|pwsh]  Install completion for the       │
-│                                                              specified shell.                 │
-│                                                              [default: None]                  │
-│ --show-completion           [bash|zsh|fish|powershell|pwsh]  Show completion for the          │
-│                                                              specified shell, to copy it or   │
-│                                                              customize the installation.      │
-│                                                              [default: None]                  │
-│ --help                                                       Show this message and exit.      │
-╰───────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Global Options ──────────────────────────────────────────────────────────────────────────────╮
-│ --settings  -s      PATH  Settings file to use                                                │
-│                           [default: ~/.drtodo]                                       │
-│ --verbose   -v            Verbose output                                                      │
-│                           [default: True]                                                     │
-│ --version   -V            Show version and exit                                               │
-╰───────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ File Selection Options ──────────────────────────────────────────────────────────────────────╮
-│ --mdfile                             PATH  Markdown file to use for todo list                 │
-│                                            [default: TEST.md]                                 │
-│ --section                            TEXT  Section name in markdown file to use for todo      │
-│                                            list, with optional heading level, e.g. '## TODO'  │
-│ --reverse-order    --normal-order          Whether todo items should be in reverse order      │
-│                                            (latest first)                                     │
-│                                            [default: normal-order]                            │
-╰───────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ────────────────────────────────────────────────────────────────────────────────────╮
-│ add     Add a new todo item to the list                                                       │
-│ debug   List configuration, settings, version and other debug info. [or dbg]                  │
-│ done    Mark one or more todo items as done                                                   │
-│ init    Initialize DrToDo folder and files                                                    │
-│ list    List todo items in the list [or ls]                                                   │
-│ man     Show detailed help and context for settings, file format and heuristics               │
-│ undone  Mark one or more todo items as NOT done (undone)                                      │
-╰───────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --verbose             -v  --quiet  -q    Verbose or quiet output                                                        │
+│                                          [default: verbose]                                                             │
+│ --version             -V                 Show version and exit                                                          │
+│ --install-completion                     Install completion for the current shell.                                      │
+│ --show-completion                        Show completion for the current shell, to copy it or customize the             │
+│                                          installation.                                                                  │
+│ --help                                   Show this message and exit.                                                    │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Advanced options ──────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --global         -G  --local         -L        Force operation on global or local todo list. Default is chosen smartly: │
+│                                                local if folder is under a git repo initialized for DrToDo, global       │
+│                                                otherwise.                                                               │
+│ --section                                TEXT  Section name in markdown file to use for todo list, with optional        │
+│                                                heading level, e.g. '## TODO'                                            │
+│ --done-section                           TEXT  Section name in markdown file to use for done items, with optional       │
+│                                                heading level, e.g. '## DONE'                                            │
+│ --reverse-order      --normal-order            Whether todo items should be in reverse order (latest first)             │
+│                                                [default: normal-order]                                                  │
+│ --mdfile                                 PATH  Markdown file to use for todo list                                       │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ──────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ add     Add a new todo item to the list                                                                                 │
+│ backup  Manage backups of markdown files                                                                                │
+│ clean   Cleans up the todo list, removing all done items or moving them to a done section                               │
+│ debug   List configuration, settings, version and other debug info. [or dbg]                                            │
+│ done    Mark one or more todo items as done                                                                             │
+│ init    Initialize DrToDo folder and files (in global location, use --local to override)                                │
+│ list    List todo items in the list [or ls]                                                                             │
+│ man     Show detailed help and context for settings, file format and heuristics                                         │
+│ remove  Remove/delete todo items from the list [or rm]                                                                  │
+│ show    Show markdown file(s) with rich rendering. Defaults to the active, configured files.                            │
+│ undone  Mark one or more todo items as NOT done (undone)                                                                │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
- DrToDo can manage items in a global todo list (~/.drtodo/TEST.md) and in a local todo list
- (~/work/src/DrToDo/TEST.md). Settings are read from config files and env variables (see todo
- man config).
+ DrToDo can manage items in a global todo list (typically in ~/.drtodo) and in a local todo list (if the current folder is
+ under a git repo configured for DrToDo). Settings are read from config files and env variables (see todo man config).
 
  ```
 

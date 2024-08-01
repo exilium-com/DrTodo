@@ -1,11 +1,17 @@
 import subprocess
 import sys
 import os
+import mistune
+from mistune.renderers.markdown import MarkdownRenderer
+from urllib.parse import urljoin, urlparse
+from drtodo import mdparser
 from rich.logging import RichHandler
 import logging
 
 logging.basicConfig(level="INFO", datefmt="[%X]", format="%(message)s", handlers=[RichHandler()])
 log = logging.getLogger(__name__)
+
+ABS_DOC_PATH = "https://pypi.org/project/drtodo/"
 
 
 def create_doc_files():
@@ -13,6 +19,21 @@ def create_doc_files():
     log.info("Creating man pages...")
     man = subprocess.run(["poetry", "run", "python", "-m", "drtodo", "man", "--raw", "all"], capture_output=True, text=True)
     help: str = man.stdout
+
+    # parse markdown using mistune and replace relative links with absolute links
+    mistune_parser = mistune.create_markdown(renderer=MarkdownRenderer())
+    _, state = mistune_parser.parse(help)
+
+    for link in mdparser.TokenTraverser.tokens_by_type(state.tokens, 'link'):
+        if 'attrs' in link and 'url' in link['attrs']:
+            # ignore links that are already absolute
+            if not urlparse(link['attrs']['url']).netloc:
+                absurl = urljoin(ABS_DOC_PATH, link['attrs']['url'])
+                log.info(f"'{link['attrs']['url']}' -> {absurl}")
+                link['attrs']['url'] = absurl
+
+    # re-render with new links
+    help = mistune_parser.render_state(state)  # type: ignore
 
     log.info("Creating cli help pages...")
     cli = subprocess.run(["poetry", "run", "typer",

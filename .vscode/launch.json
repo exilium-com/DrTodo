@@ -119,13 +119,15 @@
             "justMyCode": false
         },
         {
-            "name": "DrToDo: done 1",
+            "name": "DrToDo: clean",
             "type": "python",
             "request": "launch",
             "module": "drtodo.main",
             "args": [
-                "done",
-                "1"
+                "--done-section",
+                "# DONE",
+                "clean",
+                "-m"
             ],
             "justMyCode": false
         },

@@ -13,11 +13,11 @@ todo = "drtodo.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-typer = "*"
-rich = "*"
-pydantic = "*"
+typer = "~0.7"
+rich = "~13.4"
+pydantic = "~1.10"
 tomli = {version = "*", python = "<3.11"}
-gitpython = "*"
+gitpython = "~3.1"
 mistune = {version = "3.0.0rc5", allow-prereleases = true}
 typing-extensions = {version = "^4.5.0", python = "<3.11"}
 

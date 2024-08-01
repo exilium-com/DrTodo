@@ -47,7 +47,7 @@ class Style(BaseModel):
 styles = {
     '': Style(checked='🔘', unchecked='⚫'),
     'round': Style(checked='🔘', unchecked='⚫'),
-    'ascii': Style(checked='\[x]', unchecked='\[ ]'),
+    'ascii': Style(checked='[x]', unchecked='[ ]'),
     'bright': Style(checked='✅', unchecked='❌'),
     'check': Style(checked='✓', unchecked='✗'),
     'boxed': Style(checked='☑', unchecked='☐'),
@@ -64,6 +64,8 @@ class Settings(BaseSettings):
     keep_backups: int = 3   # number of backups to keep
     hide_hash: bool = False
     style: Union[Style, str] = ''
+    done_section: str = Field('', env=constants.env_prefix + 'DONE_SECTION')
+    """Section to move done items to. If empty, done items are removed."""
 
     # def __init__(self, **kwargs):
     #     super().__init__(**kwargs)

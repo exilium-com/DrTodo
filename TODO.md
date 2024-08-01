@@ -17,3 +17,7 @@ Favorite ice cream flavors:
 
 - [ ] bug 1
 - [ ] bug 2
+
+# Appendix (ignore)
+
+# DONE

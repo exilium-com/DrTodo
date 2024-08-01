@@ -140,7 +140,7 @@ def add(
     itemstr = f"{prioritystr}{ownerstr}{duestr} {description}".strip()
     todo_item = TaskListTraverser.create_item(itemstr, index=0, checked=done)
     for todo_file in config.globals.todo_files:
-        if (config.settings.verbose):
+        if config.settings.verbose:
             console().print(f"[header]{config.make_pretty_path(todo_file)}[text]")
         _add_item(todo_item, todo_file)
     if config.settings.verbose:
@@ -164,7 +164,7 @@ def remove_command(
     def removefromfile(todo_file: Path) -> int:
         count = 0
         if todo_file and todo_file.exists():
-            if (config.settings.verbose):
+            if config.settings.verbose:
                 console().print(f"[header]{config.make_pretty_path(todo_file)}[text]")
             todo = TodoListParser()
             todo.parse(todo_file)
@@ -185,7 +185,7 @@ def remove_command(
                 while to_remove:
                     item = to_remove.pop(0)
                     todo.remove_item(item)
-                    if (config.settings.verbose):
+                    if config.settings.verbose:
                         print_todo_item(item)
             except Exception as e:
                 error_console().print(f"no items removed: {e}")
@@ -202,6 +202,59 @@ def remove_command(
         error_console().print("nothing to remove")
 
 
+@app.command(name="clean")
+def clean_command(just_move: bool = typer.Option(None, "--move/--remove", "-m/-r", show_default=False,
+                                                 help="Cleanup method: either move to the done section or just remove items. "\
+                                                 "Defaults *remove* unless a done section is set.")):
+    """Cleans up the todo list, removing all done items or moving them to a done section"""
+
+    def cleanfromfile(todo_file: Path, move: bool) -> int:
+        count = 0
+        if todo_file and todo_file.exists():
+            if config.settings.verbose:
+                fname = config.make_pretty_path(todo_file)
+                console().print(f"[header]{fname}[text] - {'moving' if move else '[warning]removing[text]'} done items:")
+            todo = TodoListParser()
+            todo.parse(todo_file)
+            try:
+                items = taskitems.create_iterator(todo.items, omit_means_all=False, done=True)
+            except ValueError as e:
+                error_console().print(f"error: {e}")
+                raise typer.Exit(2)
+
+            try:
+                # we gather then commit to process items from list we are iterating over
+                to_clean = []
+                for item in items:
+                    to_clean.append(item)
+
+                count = len(to_clean)
+                while to_clean:
+                    item = to_clean.pop(0)
+                    if move:
+                        raise NotImplementedError("moving done items not yet implemented")
+                    else:
+                        todo.remove_item(item)
+                    if config.settings.verbose:
+                        print_todo_item(item)
+            except Exception as e:
+                error_console().print(f"no items cleaned: {e}")
+                raise typer.Exit(2)
+            finally:
+                backup_command.save_with_backups(todo_file, todo)
+        return count
+
+    if just_move is None:
+        just_move = bool(config.settings.done_section)
+
+    cleaned = 0
+    for todo_file in config.globals.todo_files:
+        cleaned += cleanfromfile(todo_file, just_move)
+
+    if cleaned == 0:
+        error_console().print("nothing to clean")
+
+
 def _done_undone_marker(done: bool, spec, id, index, range, match, all):
     """
     Mark one or more todo items as done or undone.
@@ -213,7 +266,7 @@ def _done_undone_marker(done: bool, spec, id, index, range, match, all):
     def doneundonefromfile(todo_file: Optional[Path]) -> int:
         count = 0
         if todo_file and todo_file.exists():
-            if (config.settings.verbose):
+            if config.settings.verbose:
                 console().print(f"[header]{config.make_pretty_path(todo_file)}[text] changes:")
             todo = TodoListParser()
             todo.parse(todo_file)
@@ -226,7 +279,7 @@ def _done_undone_marker(done: bool, spec, id, index, range, match, all):
 
             for item in items:
                 item['checked'] = done
-                if (config.settings.verbose):
+                if config.settings.verbose:
                     print_todo_item(item)
                 count += 1
             # write back to file
@@ -332,6 +385,10 @@ def main_callback(
         help="Section name in markdown file to use for todo list, with optional "\
         "heading level, e.g. '## TODO'", show_default=False,
         rich_help_panel=panel_ADVANCED),
+    done_section: Optional[str] = typer.Option(None,
+        help="Section name in markdown file to use for done items, with optional "\
+        "heading level, e.g. '## DONE'", show_default=False,
+        rich_help_panel=panel_ADVANCED),
     reverse_order: Optional[bool] = typer.Option(config.settings.reverse_order,
         "--reverse-order/--normal-order",
         help="Whether todo items should be in reverse order (latest first)",
@@ -351,8 +408,10 @@ def main_callback(
         config.settings.mdfile = str(mdfile)
     if verbose:
         config.settings.verbose = verbose
-    if section:
+    if section is not None:
         config.settings.section = section
+    if done_section is not None:
+        config.settings.done_section = done_section
     if reverse_order:
         config.settings.reverse_order = reverse_order
 

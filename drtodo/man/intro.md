@@ -7,81 +7,67 @@ environments including Github. You can add and modify these items easily from th
 Markdown files are then just committed to git as you'd normally do and shared with others or as
 part of projects, or just kept locally in your computer.
 
-## Quick Start
+## Install
 
-### installation
+The simplest install is to use `pip`:
 
 ```console
 $ pip install drtodo
 ```
 
-### initialization
+This will install todo in whichever python environment you are using. If you are using a virtual env manager like venv, pipenv, poetry, conda
+or any other, you can use that to install todo in the environment you want.
+
+> TODO: add instructions for pipx
+
+## Basic Example
+
+Let's go through a simple example on how you might use *DrToDo* straight out of the proverbial box.
+
 
 ```console
+# create a new folder to hold your todo items
 $ todo init
-```
-
-### add a todo to the global list
-
-```console
+# add a todo to the global list
 $ todo add "clean up folder `pwd`"
   0: 11348e9 ⚫ clean up folder /Users/me/work/src/tmp/p
-```
-
-### list todo items
-
-```console
+# list todo items
 $ todo list
   0: 11348e9 ⚫ clean up folder /Users/me/work/src/tmp/p
-```
-
-### mark it as done
-
-```console
+# mark item as done
 $ todo done 0
   0: 11348e9 🔘 clean up folder /Users/me/work/src/tmp/p
 ```
+
+There are many ways to reference todo items, you can use the index number,
+the partial hash, the text or a combination of those. For example, all of these
+would be equivalent in this example:
+
+```console
+$ todo done 11348e9
+  0: 11348e9 🔘 clean up folder /Users/me/work/src/tmp/p
+$ todo done 'clean up'
+  0: 11348e9 🔘 clean up folder /Users/me/work/src/tmp/p
+$ todo done --all
+  0: 11348e9 🔘 clean up folder /Users/me/work/src/tmp/p
+```
+
+There are more options which you can see with `todo --help` or `todo <command> --help`.
+
+Once your items are done you can delete them with `todo clean`:
+
+```console
+$ todo clean
+~/.drtodo/TODO.md - removing done items:
+  0: 11348e9 🔘 clean up folder /Users/me/work/src/tmp/p
+```
+
+## Advanced Example
+
+> TODO
+>
 
 ### use it inside a git repo
 
 > TODO: document this better including the git repo used with `todo init`
 
-## Contents
-
-  - [Quick Start](#quick-start)
-    - [installation](#installation)
-    - [initialization](#initialization)
-    - [add a todo to the global list](#add-a-todo-to-the-global-list)
-    - [list todo items](#list-todo-items)
-    - [mark it as done](#mark-it-as-done)
-    - [use it inside a git repo](#use-it-inside-a-git-repo)
-  - [Contents](#contents)
-- [Markdown Files](#markdown-files)
-- [Settings](#settings)
-  - [All Options](#all-options)
-    - [Style](#style)
-      - [Detailed Style Configuration](#detailed-style-configuration)
-  - [Global Folder](#global-folder)
-  - [Local Folder (under any git repo)](#local-folder-under-any-git-repo)
-  - [Environment variables](#environment-variables)
-  - [Sample config file (TOML)](#sample-config-file-toml)
-- [`DrToDo`](#drtodo-1)
-  - [`DrToDo add`](#drtodo-add)
-  - [`DrToDo backup`](#drtodo-backup)
-    - [`DrToDo backup list`](#drtodo-backup-list)
-    - [`DrToDo backup ls`](#drtodo-backup-ls)
-    - [`DrToDo backup restore`](#drtodo-backup-restore)
-  - [`DrToDo dbg`](#drtodo-dbg)
-  - [`DrToDo debug`](#drtodo-debug)
-  - [`DrToDo done`](#drtodo-done)
-  - [`DrToDo init`](#drtodo-init)
-  - [`DrToDo list`](#drtodo-list)
-  - [`DrToDo ls`](#drtodo-ls)
-  - [`DrToDo man`](#drtodo-man)
-    - [`DrToDo man all`](#drtodo-man-all)
-    - [`DrToDo man config`](#drtodo-man-config)
-    - [`DrToDo man md`](#drtodo-man-md)
-    - [`DrToDo man mdfiles`](#drtodo-man-mdfiles)
-    - [`DrToDo man settings`](#drtodo-man-settings)
-  - [`DrToDo show`](#drtodo-show)
-  - [`DrToDo undone`](#drtodo-undone)
