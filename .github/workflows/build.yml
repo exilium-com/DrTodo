@@ -32,7 +32,7 @@ jobs:
 
         - name: Generate Version Numbers
           id: semantic_version
-          uses: paulhatch/semantic-version@v5.0.2
+          uses: paulhatch/semantic-version@v5.4.0
           with:
             # The prefix to use to identify tags
             tag_prefix: "v"
@@ -134,7 +134,7 @@ jobs:
         if: github.event.inputs.publish_builds == 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/work' || contains(github.ref, 'release'))
         steps:
         - name: Publish Release to GitHub
-          uses: eregon/publish-release@v1.0.3
+          uses: eregon/publish-release@v1.0.6
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           with:
