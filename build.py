@@ -7,7 +7,7 @@ import mistune
 from mistune.renderers.markdown import MarkdownRenderer
 from rich.logging import RichHandler
 
-from .drtodo import mdparser
+from drtodo import mdparser
 
 logging.basicConfig(level="INFO", datefmt="[%X]", format="%(message)s", handlers=[RichHandler()])
 log = logging.getLogger(__name__)

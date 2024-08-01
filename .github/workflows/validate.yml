@@ -24,10 +24,10 @@ jobs:
           cache: 'poetry'
       # Install pip and pytest
       - name: Install dependencies
-        run: poetry install --no-root
+        run: poetry install
       - name: Lint with Ruff
         run: poetry run ruff check --output-format=github # --target-version=py39
-        continue-on-error: true
+        # continue-on-error: true
       - name: Build with poetry
         run: |
           poetry run python build.py
