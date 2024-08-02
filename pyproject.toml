@@ -7,6 +7,11 @@ readme = "drtodo/README.md"
 license = "MIT"
 repository = "https://github.com/exilium-com/DrTodo"
 keywords = ["utilities", "todo", "markdown"]
+packages = [
+    { include = "drtodo" },
+    { include = "typer_aliases" }
+]
+
 
 [tool.poetry.scripts]
 todo = "drtodo.main:main"
@@ -22,7 +27,6 @@ mistune = {version = "3.0.2", allow-prereleases = true}
 typing-extensions = {version = "^4.5.0", python = "<3.11"}
 
 [tool.poetry.group.dev.dependencies]
-black = "*"
 ruff = "*"
 pytest = ">=6,<9"
 typer-cli = ">=0.0.13,<0.12.4"
