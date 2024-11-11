@@ -18,8 +18,8 @@ todo = "drtodo.main:main"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-typer = ">=0.7,<0.13"
-rich = ">=13.4,<13.8"
+typer = ">=0.7,<0.14"
+rich = ">=13.4,<13.10"
 pydantic = "~1.10"
 tomli = {version = "*", python = "<3.11"}
 gitpython = "~3.1"
